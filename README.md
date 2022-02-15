@@ -6,7 +6,9 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of revpathsensitivity is to …
+This code implements reverse sensitivity testing on compound Poisson
+processes. This is joint work with Silvana M. Pesenti and Sebastian
+Jaimungal. This is a work in progress.
 
 ## Installation
 
