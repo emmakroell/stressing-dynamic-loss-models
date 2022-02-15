@@ -25,7 +25,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
     Nsteps <- endtime / dt + 1   # number of steps to take
 
-    eta <- VaR_eta(kappa=5, stress_parms=stress_parms, dist=gamma_2_1)
+    eta <- VaR_eta(kappa=5, stress_parms=stress_parms, dist=jump_dist)
 
     # create grid of Gs and kappas
     times <- seq(0,endtime,by=dt)
