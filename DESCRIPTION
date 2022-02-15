@@ -17,3 +17,7 @@ Imports:
     tidyselect,
     tidyr,
     withr
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

@@ -77,7 +77,8 @@ path_plot <- function(object, Npaths, plot_type = "paths",
     kappa <- as.data.frame(object$kappa_Q)
     colnames(kappa) <- seq(1,dim(kappa)[2],1)
 
-    kappa_for_plot <- dplyr::as_tibble(cbind(kappa[,indices],time)) %>%
+    kappa_for_plot <- dplyr::as_tibble(cbind(kappa[2:dim(kappa)[1],indices],
+                                             time=time[2:length(time)])) %>%
       tidyr::pivot_longer(cols = tidyselect::all_of(1:Npaths),
                           values_to = 'value',
                           names_to = 'number') %>%

@@ -19,7 +19,6 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
   # first, draw from the jump size distribution
   Ndraws <- 1e4
   with(jump_dist,{
-    ptm <- proc.time()
     withr::with_seed(720,{
       Draws <- sim_fun(Ndraws,parms)  # N draws from jump size distribution
     })
@@ -67,8 +66,6 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       # if X passed the grid max, return an error:
       if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
     }
-
-    print(proc.time() - ptm)
 
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
