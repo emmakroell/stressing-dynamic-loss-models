@@ -21,56 +21,54 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
   with(jump_dist,{
     withr::with_seed(720,{
       Draws <- sim_fun(Ndraws,parms)  # N draws from jump size distribution
+
+      Nsteps <- endtime / dt + 1   # number of steps to take
+
+      eta <- VaR_eta(kappa=5, stress_parms=stress_parms, dist=jump_dist)
+
+      # create grid of Gs and kappas
+      times <- seq(0,endtime,by=dt)
+      # choose X max based on parameters:
+      x_max <- 5 * kappa * mean(jump_dist)
+      x_seq <- seq(0,x_max,by=0.1)
+      len_x <- length(x_seq)
+
+      G_grid <- matrix(nrow = Nsteps, ncol = len_x)
+      kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
+
+
+      # compute G and kappa at grid points
+      for (i in 1:Nsteps){
+        distorted <- sim_G_kappa(t=times[i],x=x_seq,eta=eta,kappa=kappa,
+                                 q=stress_parms$q,c=stress_parms$c,
+                                 dist=jump_dist,Draws=Draws,N=Ndraws)
+        G_grid[i,] <- distorted$G_Q
+        kappa_grid[i,] <- distorted$kappa_Q
+      }
+
+      # initialize
+      X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
+      kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
+
+      X[1,] <- rep(0,Npaths)   # X starts at 0 for all paths
+      times <- seq(0,endtime,by=dt)
+
+      for (i in 2:Nsteps){
+        U <- runif(Npaths)  # generate Npaths independent unif[0,1]
+
+        # compute kappa.Q and draw from G.Q, using interpolation
+        kappa_Q[i,] <- approx(x=x_seq,y=kappa_grid[i-1,],xout=X[i-1,])$y  # store kappa
+        G_Q_draw <- approx(x=x_seq,y=G_grid[i-1,],xout=X[i-1,])$y
+        # simulate forward:
+        X[i,] <- X[i-1,] + G_Q_draw * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+
+        # if X passed the grid max, return an error:
+        if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
+      }
     })
-
-    Nsteps <- endtime / dt + 1   # number of steps to take
-
-    eta <- VaR_eta(kappa=5, stress_parms=stress_parms, dist=jump_dist)
-
-    # create grid of Gs and kappas
-    times <- seq(0,endtime,by=dt)
-    # choose X max based on parameters:
-    x_max <- 5 * kappa * mean(jump_dist)
-    x_seq <- seq(0,x_max,by=0.1)
-    len_x <- length(x_seq)
-
-    G_grid <- matrix(nrow = Nsteps, ncol = len_x)
-    kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
-
-
-    # compute G and kappa at grid points
-    for (i in 1:Nsteps){
-      distorted <- sim_G_kappa(t=times[i],x=x_seq,eta=eta,kappa=kappa,
-                               q=stress_parms$q,c=stress_parms$c,
-                               dist=jump_dist,Draws=Draws,N=Ndraws)
-      G_grid[i,] <- distorted$G_Q
-      kappa_grid[i,] <- distorted$kappa_Q
-    }
-
-    # initialize
-    X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
-    kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
-
-    X[1,] <- rep(0,Npaths)   # X starts at 0 for all paths
-    times <- seq(0,endtime,by=dt)
-
-    for (i in 2:Nsteps){
-      U <- runif(Npaths)  # generate Npaths independent unif[0,1]
-
-      # compute kappa.Q and draw from G.Q, using interpolation
-      kappa_Q[i,] <- approx(x=x_seq,y=kappa_grid[i-1,],xout=X[i-1,])$y  # store kappa
-      G_Q_draw <- approx(x=x_seq,y=G_grid[i-1,],xout=X[i-1,])$y
-      # simulate forward:
-      X[i,] <- X[i-1,] + G_Q_draw * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
-
-      # if X passed the grid max, return an error:
-      if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
-    }
-
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
                   time_vec = times, paths = X, kappa_Q = kappa_Q)
-
   })
 }
 
@@ -136,19 +134,19 @@ sim_baseline <- function(object){
     # draw from the jump size distribution
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
+
+      Npaths <- dim(paths)[2]
+
+      Nsteps <- length(time_vec)
+      X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
+      X[1,] <- rep(0,Npaths)
+
+      for (i in 2:Nsteps){
+        U <- runif(Npaths)
+        dt <- time_vec[i] - time_vec[i-1]
+        X[i,] <- X[i-1,] + sample(Draws,Npaths) * as.integer(U < (1 - exp(-kappa * dt)))
+      }
     })
-
-    Npaths <- dim(paths)[2]
-
-    Nsteps <- length(time_vec)
-    X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
-    X[1,] <- rep(0,Npaths)
-
-    for (i in 2:Nsteps){
-      U <- runif(Npaths)
-      dt <- time_vec[i] - time_vec[i-1]
-      X[i,] <- X[i-1,] + sample(Draws,Npaths) * as.integer(U < (1 - exp(-kappa * dt)))
-    }
     return(X)
   })
 }
