@@ -43,7 +43,15 @@ path_plot <- function(object, Npaths, plot_type = "paths",
     tidyr::pivot_longer(cols="lwr":"upr",values_to = "value",names_to ="quantile") %>%
     dplyr::mutate(quantile = as.factor(quantile),type = "stressed")
 
-  if (plot_type == "compare_to_baseline") {
+  if (plot_type == "paths"){
+    plot <- ggplot2::ggplot() +
+      ggplot2::geom_line(data=X_for_plot,
+                         ggplot2::aes(time,value,colour=number),alpha=0.8) +
+      ggplot2::geom_line(data=X_quantiles,
+                         ggplot2::aes(x=time,y=value,group=quantile), size = 1) +
+      ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
+
+  } else if (plot_type == "compare_to_baseline") {
     X_baseline <- sim_baseline(object) %>% as.data.frame()
     colnames(X_baseline) <- seq(1,dim(X_baseline)[2])
 
@@ -64,12 +72,17 @@ path_plot <- function(object, Npaths, plot_type = "paths",
       tidyr::pivot_longer(cols="lwr":"upr",values_to = "value",names_to ="quantile") %>%
       dplyr::mutate(quantile = as.factor(quantile),type = "original")
 
+    # headings for facet plot
+    headings <- c('stressed'= 'stressed ~ X * -paths',
+                  "original"= 'original ~ X * -paths')
+
     plot <- ggplot2::ggplot() +
       ggplot2::geom_line(data=rbind(X_for_plot,X_baseline_for_plot),
                          ggplot2::aes(time,value,colour=number),alpha=0.8) +
       ggplot2::geom_line(data=rbind(X_quantiles,X_baseline_quantiles),
                          ggplot2::aes(x=time,y=value,group=quantile), size = 1) +
-      ggplot2::facet_wrap(~type,scales="free") +
+      ggplot2::facet_wrap(~type,scales="free",
+                          labeller = ggplot2::as_labeller(headings,ggplot2::label_parsed)) +
       ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
 
 
@@ -84,18 +97,25 @@ path_plot <- function(object, Npaths, plot_type = "paths",
                           names_to = 'number') %>%
       dplyr::mutate(number = as.factor(number), type = "kappa")
 
+    # headings for facet plot
+    headings <- c('kappa'= 'stressed ~ kappa * -paths',
+                  "stressed"= 'stressed ~ X * -paths')
+
+    # horizontal lines for kappa^P and q
+    lines <- dplyr::as_tibble(cbind(line=c(object$kappa,object$stress_parms$q),
+                              type = c("kappa","stressed"))) %>%
+             dplyr::mutate(line=as.numeric(line))
+
     plot <- rbind(X_for_plot,kappa_for_plot) %>%
       ggplot2::ggplot(ggplot2::aes(x=time,y=value,colour=number)) +
-      ggplot2::geom_line(alpha=0.8) + ggplot2::facet_wrap(~type,scales="free") +
+      ggplot2::geom_line(alpha=0.8) +
+      ggplot2::facet_wrap(~type,scales="free",
+                          labeller = ggplot2::as_labeller(headings,ggplot2::label_parsed)) +
+      ggplot2::geom_hline(data = lines, ggplot2::aes(yintercept = line),lty=2) +
       ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
 
   } else{
-    plot <- ggplot2::ggplot() +
-      ggplot2::geom_line(data=X_for_plot,
-                         ggplot2::aes(time,value,colour=number),alpha=0.8) +
-      ggplot2::geom_line(data=X_quantiles,
-                         ggplot2::aes(x=time,y=value,group=quantile), size = 1) +
-      ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
+    stop("Plot type not initialized")
   }
   return(plot)
 }
