@@ -67,7 +67,7 @@ FST <- function(x, t, dist, kappa, terminal_cond, grid_max, endtime=1, N=5e3,
 #' @return double, optimal eta for VaR stress
 #' @export
 #'
-VaR_eta <- function(kappa,stress_parms,dist) {
+eta_VaR <- function(kappa,stress_parms,dist) {
   with(stress_parms,{
     indic_func <- function(x) ifelse(x < q, 1, 0)
     grid_max <- 5 * kappa * mean(dist)
@@ -78,7 +78,7 @@ VaR_eta <- function(kappa,stress_parms,dist) {
 }
 
 
-#' Title
+#' Computes h(t,x,y)
 #'
 #' @param x vector
 #' @param y vector
@@ -100,3 +100,34 @@ h_FST <- function(x, y, t, dist, eta, q, c, kappa, endtime=1, N=8192) {
   FST(x, t, dist, kappa, y=y, terminal_cond=g, grid_max=grid_max, endtime=endtime, N=N, h=TRUE)
 }
 
+
+#' computes VaR under the P measure using FST and stats::uniroot
+#'
+#' @param kappa dbl, compound Poisson parameter
+#' @param c dbl, level for VaR between 0 and 1
+#' @param dist RPS_dist object
+#'
+#' @return
+#' @export
+#'
+compute_VaR <- function(kappa,c,dist){
+  stats::uniroot(function(q) P_prob(kappa=kappa,q=q,dist=dist)-c,
+                 interval=c(0, 5*kappa*mean(dist)))$root
+}
+
+#' Helper function for compute_VaR
+#' computes the P probability that X is less than q using FST
+#'
+#' @param kappa dbl, compound Poisson parameter
+#' @param q dbl
+#' @param dist RPS_dist object
+#'
+#' @return
+#' @export
+#'
+P_prob <- function(kappa,q,dist){
+  indic_func <- function(x) ifelse(x < q, 1, 0)
+  grid_max <- 5 * kappa * mean(dist)
+  FST(x=0, t=0, dist=dist, kappa = kappa,terminal_cond=indic_func,
+      grid_max=grid_max)
+}

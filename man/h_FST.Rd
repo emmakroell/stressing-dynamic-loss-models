@@ -2,7 +2,7 @@
 % Please edit documentation in R/FST.R
 \name{h_FST}
 \alias{h_FST}
-\title{Title}
+\title{Computes h(t,x,y)}
 \usage{
 h_FST(x, y, t, dist, eta, q, c, kappa, endtime = 1, N = 8192)
 }
@@ -31,5 +31,5 @@ h_FST(x, y, t, dist, eta, q, c, kappa, endtime = 1, N = 8192)
 
 }
 \description{
-Title
+Computes h(t,x,y)
 }

@@ -2,7 +2,9 @@
 
 S3method(mean,RPS_dist)
 export(FST)
-export(VaR_eta)
+export(P_prob)
+export(compute_VaR)
+export(eta_VaR)
 export(h_FST)
 export(is.RPS_dist)
 export(is.RPS_model)

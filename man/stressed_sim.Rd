@@ -8,7 +8,7 @@ stressed_sim(
   kappa,
   jump_dist,
   stress_type = "VaR",
-  stress_parms = list(c = c, q = q),
+  stress_parms = list(c = c, q = q, stress = stress),
   Npaths = 10000,
   endtime = 1,
   dt = 0.01
@@ -22,7 +22,7 @@ stressed_sim(
 \item{stress_type}{one of "VaR", "VaR & CVaR"}
 
 \item{stress_parms}{list of parameters for stress
-VaR: q: stressed VaR value, c: VaR level
+VaR: q: stressed VaR value, c: VaR level, stress: multiplier for P-VaR
 CVAR: TBA}
 
 \item{Npaths}{integer, number of paths}

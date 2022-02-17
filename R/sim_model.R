@@ -4,7 +4,7 @@
 #' @param jump_dist RPS_dist object, contains jump size distribution
 #' @param stress_type one of "VaR", "VaR & CVaR"
 #' @param stress_parms list of parameters for stress
-#' VaR: q: stressed VaR value, c: VaR level
+#' VaR: q: stressed VaR value, c: VaR level, stress: multiplier for P-VaR
 #' CVAR: TBA
 #' @param Npaths integer, number of paths
 #' @param endtime float, when to end sim
@@ -13,8 +13,8 @@
 #' @return RPS_model object
 #' @export
 stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
-                         stress_parms = list(c=c,q=q), Npaths=1e4,
-                         endtime=1, dt=1e-2){
+                         stress_parms = list(c=c,q=q,stress=stress),
+                         Npaths=1e4,endtime=1, dt=1e-2){
 
   # first, draw from the jump size distribution
   Ndraws <- 1e4
@@ -24,7 +24,11 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
       Nsteps <- endtime / dt + 1   # number of steps to take
 
-      eta <- VaR_eta(kappa=5, stress_parms=stress_parms, dist=jump_dist)
+      if (is.null(stress_parms$q) & !(is.null(stress_parms$stress))){
+        stress_parms$q <- stress_parms$stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+      }
+
+      eta <- eta_VaR(kappa=5, stress_parms=stress_parms, dist=jump_dist)
 
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
