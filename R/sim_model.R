@@ -106,7 +106,7 @@ sim_G_kappa <- function(t,x,eta,kappa,q,c,dist,Draws,delta_y=0.1,N=1e4){
 
     # compute h at each y
     for (i in 1:ylen){
-      h[,i] <- h_FST(x=x,y=y[i],t=t,dist=dist,eta=eta,q=q,c=c,kappa=kappa)
+      h[,i] <- h_VaR(x=x,y=y[i],t=t,dist=dist,eta=eta,q=q,c=c,kappa=kappa)
     }
 
     # initialize
