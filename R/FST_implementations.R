@@ -69,7 +69,6 @@ eta_VaR <- function(kappa,stress_parms,dist) {
 #' @param dist RPS_dist object, contains jump size distribution
 #' @param eta double, optimal eta for VaR stress
 #' @param q double, stressed VaR value
-#' @param c double, VaR level to stress
 #' @param kappa double, compound Poisson parameter
 #' @param endtime double, end time
 #' @param N int, number of points for FST method
@@ -77,7 +76,7 @@ eta_VaR <- function(kappa,stress_parms,dist) {
 #' @return
 #' @export
 #'
-h_VaR <- function(x, y, t, dist, eta, q, c, kappa, endtime=1, N=8192) {
+h_VaR <- function(x, y, t, dist, eta, q, kappa, endtime=1, N=8192) {
   grid_max <- max(x) + max(y) + 30
   num <- 1 + (exp(-eta) - 1) * P_prob(x+y,t,kappa,q,dist,grid_max,endtime,N)
   denom <- 1 + (exp(-eta) - 1) * P_prob(x,t,kappa,q,dist,grid_max,endtime,N)

@@ -14,7 +14,7 @@
 new_RPS_model <- function(jump_dist, kappa, stress_type,
                           stress_parms, paths, time_vec, kappa_Q){
 
-  stress_type <- match.arg(stress_type, c("VaR", "VaR & CVaR"))
+  stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
 
   model <- list(jump_dist = jump_dist,
                 kappa = kappa,

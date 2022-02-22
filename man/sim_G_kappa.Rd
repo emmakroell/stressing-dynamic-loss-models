@@ -5,7 +5,19 @@
 \title{compute G^Q and kappa^Q for Y ~ dist
 helper function for stressed_sim()}
 \usage{
-sim_G_kappa(t, x, eta, kappa, q, c, dist, Draws, delta_y = 0.1)
+sim_G_kappa(
+  t,
+  x,
+  eta,
+  kappa,
+  stress_type,
+  stress_parms,
+  dist,
+  Draws,
+  delta_y = 0.1,
+  y_max = 100,
+  tol = 1e-10
+)
 }
 \arguments{
 \item{t}{A number,time}
@@ -16,15 +28,22 @@ sim_G_kappa(t, x, eta, kappa, q, c, dist, Draws, delta_y = 0.1)
 
 \item{kappa}{integer}
 
-\item{q}{float, distorted quantile}
+\item{stress_type}{one of "VaR", "VaR & CVaR"}
 
-\item{c}{float, qantile to distort, c in (0,1)}
+\item{stress_parms}{list of parameters for stress
+VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
+CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
+VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
 
 \item{dist}{RPS_dist object}
 
 \item{Draws}{vector}
 
 \item{delta_y}{float, step size for Riemann integration}
+
+\item{y_max}{int, maximum for integration of h(t,x,y) along y-axes}
+
+\item{tol}{dbl, cut off integration when prob less than tol}
 }
 \value{
 A list containing:

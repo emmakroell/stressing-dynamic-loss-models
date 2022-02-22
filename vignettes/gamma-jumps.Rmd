@@ -41,7 +41,7 @@ We decide to stress the 90\% VaR of the model down about 20\%. this code imposes
 # simulate
 gamma_2_1_example <- stressed_sim(kappa = 5, jump_dist = gamma_2_1, 
                                   stress_type = "VaR",
-                                  stress_parms = list(c=0.9,stress=0.8),
+                                  stress_parms = list(c=0.9,VaR_stress=0.8),
                                   Npaths=1e4, endtime=1, dt=1e-2)
 ```
 

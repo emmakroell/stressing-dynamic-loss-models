@@ -4,7 +4,7 @@
 \alias{h_VaR}
 \title{Computes h(t,x,y) for VaR constraint}
 \usage{
-h_VaR(x, y, t, dist, eta, q, c, kappa, endtime = 1, N = 8192)
+h_VaR(x, y, t, dist, eta, q, kappa, endtime = 1, N = 8192)
 }
 \arguments{
 \item{x}{vector}
@@ -18,8 +18,6 @@ h_VaR(x, y, t, dist, eta, q, c, kappa, endtime = 1, N = 8192)
 \item{eta}{double, optimal eta for VaR stress}
 
 \item{q}{double, stressed VaR value}
-
-\item{c}{double, VaR level to stress}
 
 \item{kappa}{double, compound Poisson parameter}
 
