@@ -49,6 +49,7 @@ path_plot <- function(object, Npaths, plot_type = "paths",
                          ggplot2::aes(time,value,colour=number),alpha=0.8) +
       ggplot2::geom_line(data=X_quantiles,
                          ggplot2::aes(x=time,y=value,group=quantile), size = 1) +
+      ggplot2::geom_hline(yintercept = object$stress_parms$q,lty=2) +
       ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
 
   } else if (plot_type == "compare_to_baseline") {
@@ -81,7 +82,8 @@ path_plot <- function(object, Npaths, plot_type = "paths",
                          ggplot2::aes(time,value,colour=number),alpha=0.8) +
       ggplot2::geom_line(data=rbind(X_quantiles,X_baseline_quantiles),
                          ggplot2::aes(x=time,y=value,group=quantile), size = 1) +
-      ggplot2::facet_wrap(~type,scales="free",
+      ggplot2::geom_hline(yintercept = object$stress_parms$q,lty=2) +
+      ggplot2::facet_wrap(~type,
                           labeller = ggplot2::as_labeller(headings,ggplot2::label_parsed)) +
       ggplot2::theme_bw() + ggplot2::theme(legend.position = "none")
 

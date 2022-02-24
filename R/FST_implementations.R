@@ -177,7 +177,7 @@ eta_CVaR <- function(kappa,stress_parms,dist,endtime=1,N=8192) {
     # compute eta 2 using helper function and uniroot
     eta2 <- uniroot(function(eta) eta2_eq(eta, dist=dist, q=q, s=s,kappa=kappa,
                                           grid_max= grid_max,endtime=endtime,N=N),
-                    interval = c(-5,5), extendInt = "yes")$root
+                    interval = c(-5,5),tol=1e-10, extendInt = "yes")$root
     eta2 <- eta2 / grid_max
     # compute eta 1
     p <- P_prob(x=0,t=0,kappa=kappa,q=q,dist=dist,grid_max=grid_max,endtime=endtime,N=N)
