@@ -33,11 +33,10 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
           !(is.null(stress_parms$CVaR_stress))){
         stress_parms$s <- stress_parms$CVaR_stress *
           compute_CVaR(kappa=kappa,q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
-      }
-
-      if (stress_parms$s < stress_parms$q) {
-        stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
+        if (stress_parms$s < stress_parms$q) {
+          stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
         }
+      }
 
       eta <- switch(stress_type,
                     "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
