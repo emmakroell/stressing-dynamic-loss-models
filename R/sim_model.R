@@ -35,12 +35,17 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
           compute_CVaR(kappa=kappa,q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
       }
 
+      if (stress_parms$s < stress_parms$q) {
+        stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
+        }
+
       eta <- switch(stress_type,
                     "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
                                     dist=jump_dist),
                     "CVaR" = eta_CVaR(kappa=kappa, stress_parms=stress_parms,
                                       dist=jump_dist))
 
+      cat("eta=", eta, "\n")
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
@@ -137,6 +142,7 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
       kappa_Q[j] <- delta_y * sum(h[j,] * dens_fun(y,parms))
       # draw from G.Q
       weights <- approx(x=y,y=h[j,],xout=Draws)$y / kappa_Q[j]    # compute weights
+      weights <- ifelse(weights < 0,0,weights)
       G_Q[j] <- sample(Draws, 1, replace = TRUE, prob=weights)   # sample 1 from G^Q
     }
     return(list(kappa_Q = kappa * kappa_Q,
