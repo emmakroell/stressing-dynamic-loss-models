@@ -44,7 +44,6 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                     "CVaR" = eta_CVaR(kappa=kappa, stress_parms=stress_parms,
                                       dist=jump_dist))
 
-      cat("eta=", eta, "\n")
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
@@ -106,6 +105,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 #' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
 #' @param dist RPS_dist object
 #' @param Draws vector
+#' @param N_out int, number of draws from distorted jump distribution
 #' @param delta_y float, step size for Riemann integration
 #' @param y_max int, maximum for integration of h(t,x,y) along y-axes
 #' @param tol dbl, cut off integration when prob less than tol
@@ -116,7 +116,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 #'
 #' @export
 sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
-                        Draws,delta_y=0.1,y_max=100,tol=1e-10) {
+                        Draws,N_out=1,delta_y=0.1,y_max=100,tol=1e-10) {
   with(c(dist,stress_parms), {
     # x is a vector
     xlen <- length(x)
@@ -134,7 +134,7 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
 
     # initialize
     kappa_Q <- rep(NA,xlen)
-    G_Q <- rep(NA,xlen)
+    G_Q <- array(dim=c(xlen,N_out))
 
     for (j in 1:xlen){
       # compute integral (kappa.Q):
@@ -142,7 +142,7 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
       # draw from G.Q
       weights <- approx(x=y,y=h[j,],xout=Draws)$y / kappa_Q[j]    # compute weights
       weights <- ifelse(weights < 0,0,weights)
-      G_Q[j] <- sample(Draws, 1, replace = TRUE, prob=weights)   # sample 1 from G^Q
+      G_Q[j,] <- sample(Draws,N_out,replace = TRUE,prob=weights)   # sample 1 from G^Q
     }
     return(list(kappa_Q = kappa * kappa_Q,
                 G_Q = G_Q))
@@ -172,7 +172,7 @@ sim_baseline <- function(object){
       for (i in 2:Nsteps){
         U <- runif(Npaths)
         dt <- time_vec[i] - time_vec[i-1]
-        X[i,] <- X[i-1,] + sample(Draws,Npaths) * as.integer(U < (1 - exp(-kappa * dt)))
+        X[i,] <- X[i-1,] + sample(Draws,Npaths,replace=TRUE) * as.integer(U < (1 - exp(-kappa * dt)))
       }
     })
     return(X)

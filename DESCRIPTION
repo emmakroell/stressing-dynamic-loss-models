@@ -16,7 +16,8 @@ Imports:
     ggplot2,
     tidyselect,
     tidyr,
-    withr
+    withr,
+    plotly
 Suggests: 
     rmarkdown,
     knitr

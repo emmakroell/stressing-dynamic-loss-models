@@ -15,8 +15,8 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-#library(revpathsensitivity)
-devtools::load_all()
+library(revpathsensitivity)
+# devtools::load_all()
 ```
 
 In this example, we set the jump size distribution to $\Gamma(\alpha, \beta)$ where $\alpha = 2$ and $\beta = 1$. We first create a class containing all the information needed on this random variable.

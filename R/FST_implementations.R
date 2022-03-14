@@ -77,7 +77,7 @@ eta_VaR <- function(kappa,stress_parms,dist) {
 #' @export
 #'
 h_VaR <- function(x, y, t, dist, eta, q, kappa, endtime=1, N=8192) {
-  grid_max <- max(x) + max(y) + 30
+  grid_max <- max(x) + max(y) + 50
   num <- 1 + (exp(-eta) - 1) * P_prob(x+y,t,kappa,q,dist,grid_max,endtime,N)
   denom <- 1 + (exp(-eta) - 1) * P_prob(x,t,kappa,q,dist,grid_max,endtime,N)
   num / denom

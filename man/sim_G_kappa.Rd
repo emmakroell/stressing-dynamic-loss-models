@@ -14,6 +14,7 @@ sim_G_kappa(
   stress_parms,
   dist,
   Draws,
+  N_out = 1,
   delta_y = 0.1,
   y_max = 100,
   tol = 1e-10
@@ -38,6 +39,8 @@ VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
 \item{dist}{RPS_dist object}
 
 \item{Draws}{vector}
+
+\item{N_out}{int, number of draws from distorted jump distribution}
 
 \item{delta_y}{float, step size for Riemann integration}
 
