@@ -48,23 +48,8 @@ gamma_2_1_example <- stressed_sim(kappa = 5, jump_dist = gamma_2_1,
 Here we plot the output of the stressed model.
 
 ```{r}
-path_plot(gamma_2_1_example, Npaths=20, quantiles=list(lower=0.1,upper=0.9))
-```
-
-We can also compare the paths under the stressed model to those under the baseline model.
-
-```{r}
 path_plot(gamma_2_1_example,
           Npaths = 20,
-          quantiles=list(lower=0.1,upper=0.9),
-          plot_type = "compare_to_baseline")
-```
-
-Finally, we can examine how the intensity of the jumps have changed under the stressed probability measure.
-
-```{r}
-path_plot(gamma_2_1_example,
-          Npaths = 10,
-          plot_type = "compare_to_kappa")
+          quantiles=list(lower=0.1,upper=0.9))
 ```
 

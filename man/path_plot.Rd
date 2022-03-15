@@ -3,14 +3,14 @@
 \name{path_plot}
 \alias{path_plot}
 \title{plot a RPS object
-choose to plot paths only, or compare to baseline model,
-or compare to kappa_Q}
+creates three-panel plot of paths underr stressed model, paths under
+baseline model, and kappa_Q}
 \usage{
 path_plot(
   object,
   Npaths,
-  plot_type = "paths",
-  quantiles = list(lower = 0.1, upper = 0.9)
+  quantiles = list(lower = 0.1, upper = 0.9),
+  indices = "random"
 )
 }
 \arguments{
@@ -18,17 +18,17 @@ path_plot(
 
 \item{Npaths}{int, number of paths to plot}
 
-\item{plot_type}{one of "compare_to_baseline" or "compare_to_kappa". If empty,
-plots only stressed model}
-
 \item{quantiles}{list containing lower and upper, specifies which quantiles
 to highlight}
+
+\item{indices}{vector of indices to plot of length Npaths,
+or ="random" to choose randomly}
 }
 \value{
 
 }
 \description{
 plot a RPS object
-choose to plot paths only, or compare to baseline model,
-or compare to kappa_Q
+creates three-panel plot of paths underr stressed model, paths under
+baseline model, and kappa_Q
 }

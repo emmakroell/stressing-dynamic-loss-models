@@ -152,8 +152,8 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=
     dplyr::mutate(X = factor(X, levels = x_vec)) %>%
     dplyr::mutate(X=paste("X =",X)) %>%
     ggplot2::ggplot() +
-    ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=time,fill=time),
-                            bins=25,alpha=0.5) +
+    ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
+                            bins=25,alpha=0.6) +
     ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
                        ggplot2::aes(x=plot_x,y=plot_y)) +
     ggplot2::facet_grid(X ~ time) +
@@ -163,9 +163,9 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=
 }
 
 
-# plot_G_Q(x_vec=c(14,16,18,20),t=c(0.33,0.66,1),kappa=5,jump_dist=gamma_2_1,
+# plot_G_Q(x_vec=c(15,17,19,21),t=c(0.5,1),kappa=5,jump_dist=gamma_2_1,
 #          stress_type="VaR",stress_parms = list(c=0.9,VaR_stress=1.1))
-# plot_G_Q(x_vec=c(14,16,18,20),t=c(0.25,0.5,0.75,1),kappa=5,jump_dist=gamma_2_1,
-#          stress_type="VaR",stress_parms = list(c=0.9,VaR_stress=1.1))
+# plot_G_Q(x_vec=c(15,17,19,21),t=c(0.5,1),kappa=5,jump_dist=gamma_2_1,
+#          stress_type="CVaR",stress_parms = list(c=0.9,VaR_stress=1.1,CVaR_stress=1.08))
 
 

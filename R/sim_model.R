@@ -48,7 +48,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
       x_max <- 5 * kappa * mean(jump_dist)
-      x_seq <- seq(0,x_max,by=0.1)
+      x_seq <- seq(0,x_max,by=1e-2)
       len_x <- length(x_seq)
 
       G_grid <- matrix(nrow = Nsteps, ncol = len_x)
@@ -85,6 +85,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
         if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
       }
     })
+    beepr::beep()
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
                   time_vec = times, paths = X, kappa_Q = kappa_Q)
