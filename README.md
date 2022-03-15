@@ -44,58 +44,38 @@ gamma_2_1 <- new_RPS_dist(dist_fun = function(x,parms) pgamma(x,shape=parms$alph
                           parms = list(alpha = 2, beta=1)) 
 ```
 
-We decide to stress the 90% VaR of the model down 20%. this code imposes
+We decide to stress the 90% VaR of the model up 10%. This code imposes
 the stress and simulates under the model.
 
 ``` r
 ex_gamma_VaR <- stressed_sim(kappa = 5, jump_dist = gamma_2_1, 
                              stress_type = "VaR",
-                             stress_parms = list(c=0.9,VaR_stress=0.8),
+                             stress_parms = list(c=0.9,VaR_stress=1.1),
                              Npaths=1e4, endtime=1, dt=1e-2)
 ```
 
-Here we plot the output of the stressed model.
+Here we plot the output of the stressed model. We compare the paths
+under the stressed model to those under the baseline model, as well as
+to how the intensity of the jumps have changed under the stressed
+probability measure.
 
 ``` r
-path_plot(ex_gamma_VaR, Npaths=20, quantiles=list(lower=0.1,upper=0.9))
+path_plot(ex_gamma_VaR, Npaths=15, quantiles=list(lower=0.1,upper=0.9))
 ```
 
 <img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
 
-We can also compare the paths under the stressed model to those under
-the baseline model.
-
-``` r
-path_plot(ex_gamma_VaR,
-          Npaths = 20,
-          quantiles=list(lower=0.1,upper=0.9),
-          plot_type = "compare_to_baseline")
-```
-
-<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
-
-Finally, we can examine how the intensity of the jumps have changed
-under the stressed probability measure.
-
-``` r
-path_plot(ex_gamma_VaR,
-          Npaths = 10,
-          plot_type = "compare_to_kappa")
-```
-
-<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
-
 ### CVaR constraint
 
-Now we want to impose an additional constraint, corresponding to a 10%
-decrease in CVaR (also known as Expected Shortfall).
+Now we want to impose an additional constraint, corresponding to an 8%
+increase in CVaR (also known as Expected Shortfall).
 
 ``` r
 ex_gamma_CVaR <- stressed_sim(kappa = 5, jump_dist = gamma_2_1,
                               stress_type = "CVaR", 
                               stress_parms = list(c=0.9,
-                                                 VaR_stress=0.8,
-                                                 CVaR_stress=0.9),
+                                                 VaR_stress=1.1,
+                                                 CVaR_stress=1.08),
                               Npaths=1e4, endtime=1, dt=1e-2)
 ```
 
@@ -103,9 +83,7 @@ Here we plot the paths of the stressed model as well as the jump
 intensity over time.
 
 ``` r
-path_plot(ex_gamma_CVaR,
-          Npaths = 10,
-          plot_type = "compare_to_kappa")
+path_plot(ex_gamma_CVaR, Npaths=15, quantiles=list(lower=0.1,upper=0.9))
 ```
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
