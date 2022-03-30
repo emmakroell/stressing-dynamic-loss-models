@@ -52,18 +52,20 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       x2_seq <- seq(0,x_max,by=1e-2)
       len_x <- length(x1_seq)
 
-      G_grid <- array(dim=c(2,Nsteps,len_x))
+      G_grid1 <- array(dim=c(Nsteps,len_x))
+      G_grid2 <- array(dim=c(Nsteps,len_x))
       kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
 
 
       # compute G and kappa at grid points
       for (i in 1:Nsteps){
-        distorted <- sim_G_kappa(t=times[i],x1=x1_seq,x2=x2_seq,eta=eta,kappa=kappa,
+        distorted <- sim_G_kappa(t=times[i],x=x1_seq,eta=eta,kappa=kappa,
                                  stress_type=stress_type,
                                  stress_parms=stress_parms,
                                  dist=jump_dist,Draws=Draws)
 
-        G_grid[,i,] <- G_grid[,i,]
+        G_grid1[i,] <- distorted$G_Q_1
+        G_grid2[i,] <- distorted$G_Q_2
         kappa_grid[i,] <- distorted$kappa_Q
       }
 
@@ -81,8 +83,8 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
         # compute kappa.Q and draw from G.Q, using interpolation
         kappa_Q[i,] <- approx(x=x1_seq,y=kappa_grid[i-1,],xout=X1[i-1,])$y  # store kappa
-        G_Q_draw1 <- approx(x=x1_seq,y=G_grid[1,i-1,1,],xout=X1[i-1,])$y
-        G_Q_draw2 <- approx(x=x2_seq,y=G_grid[2,i-1,1,],xout=X2[i-1,])$y
+        G_Q_draw1 <- approx(x=x1_seq,y=G_grid1[i-1,],xout=X1[i-1,])$y
+        G_Q_draw2 <- approx(x=x2_seq,y=G_grid2[i-1,],xout=X2[i-1,])$y
         # simulate forward:
         X1[i,] <- X1[i-1,] + G_Q_draw1 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
         X2[i,] <- X2[i-1,] + G_Q_draw2 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
@@ -97,7 +99,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
                   time_vec = times, paths = list(X1=X1, X2=X2),
-                  kappa_Q = kappa_Q, G_Q = G_grid)
+                  kappa_Q = kappa_Q)
   })
 }
 
@@ -144,21 +146,23 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
 
     # initialize
     kappa_Q <- rep(NA,xlen)
-    G_Q <- array(dim=c(2,xlen,N_out))
+    G_Q_1 <- array(dim=c(xlen,N_out))
+    G_Q_2 <- array(dim=c(xlen,N_out))
 
     for (j in 1:xlen){
       # compute integral (kappa.Q):
       kappa_Q[j] <- delta_y * sum(h[j,] * dens_fun(y,parms))
       # draw from G.Q
       weights1 <- approx(x=y,y=h[j,],xout=Draws[,1])$y / kappa_Q[j]    # compute weights
-      G_Q[1,j,] <- sample(Draws[,1],N_out,replace = TRUE,prob=weights1)   # sample 1 from G^Q
+      G_Q_1[j,] <- sample(Draws[,1],N_out,replace = TRUE,prob=weights1)   # sample 1 from G^Q
 
-      weights2 <- approx(x=y,y=h[j,],xout=Draws[,2])$y / kappa_Q[j]    # compute weights
-      G_Q[2,j,] <- sample(Draws[,2],N_out,replace = TRUE,prob=weights2)   # sample 1 from G^Q
+      weights2 <- approx(x=y,y=h[j,],xout=Draws[,1])$y / kappa_Q[j]    # compute weights
+      G_Q_2[j,] <- sample(Draws[,2],N_out,replace = TRUE,prob=weights2)   # sample 1 from G^Q
       # weights <- ifelse(weights < 0,0,weights)
     }
     return(list(kappa_Q = kappa * kappa_Q,
-                G_Q = G_Q))
+                G_Q_1  = G_Q_1,
+                G_Q_2 = G_Q_2))
   })
 }
 
@@ -176,7 +180,8 @@ sim_baseline <- function(object){
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 
-      Npaths <- dim(paths)[2]
+      dim_X <- ifelse(is.list(paths), dim(paths$X1), dim(paths))
+      Npaths <- dim_X[2]
 
       Nsteps <- length(time_vec)
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results

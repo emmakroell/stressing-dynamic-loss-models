@@ -51,7 +51,8 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 #' @return
 #' @export
 #'
-new_RPS_dist <- function(copula, margins, dens_fun, char_fun, mean_fun, parms) {
+new_RPS_dist <- function(copula, margins, sim_fun, dens_fun,
+                         char_fun, mean_fun, parms) {
   # copula <- copula(param = NULL, dim=2) #copula(0.5,dim=2) #for normal FIX
   biv_dist = mvdc(copula=copula,
                   margins=margins,
@@ -61,6 +62,7 @@ new_RPS_dist <- function(copula, margins, dens_fun, char_fun, mean_fun, parms) {
                                          scale=parms$beta2)))
 
   model <- list(biv_dist = biv_dist,
+                sim_fun = sim_fun,
                 dens_fun = dens_fun,
                 char_fun = char_fun,
                 mean_fun = mean_fun,

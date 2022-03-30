@@ -1,5 +1,5 @@
 
-#' Plot dist ofmarginals at multiple points in time and X
+#' Plot dist of G marginals at multiple points in time and X
 #'
 #' @param x_vec vector of state variable values
 #' @param t_vec vector of dbl, between 0 and 1
@@ -15,7 +15,7 @@
 #' @return
 #' @export
 #'
-plot_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=1e4){
+plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=1e4){
 
   plot_x <- seq(0,12,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
@@ -45,19 +45,20 @@ plot_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,
   for (t in t_vec){
     res <- sim_G_kappa(t=t,x_vec,eta=eta,kappa=kappa,stress_type=stress_type,
                        stress_parms=stress_parms,dist=jump_dist,Draws=Draws,
-                       N_out=N_out)$G_Q
+                       N_out=N_out)
 
   # arrange data
-    Y1 <- as_tibble(t(res[1,,]))
+    Y1 <- dplyr::as_tibble(t(res$G_Q_1))
     colnames(Y1) <- x_vec
     Y1 <- Y1 %>%
-      tidyr::pivot_longer(cols=everything(),names_to="x",values_to="value") %>%
+      tidyr::pivot_longer(cols=dplyr::everything(),
+                          names_to="x",values_to="value") %>%
       dplyr::mutate(dim=1,time = as.factor(paste("time =",t)))
 
-    Y2 <- as_tibble(t(res[2,,]))
+    Y2 <- dplyr::as_tibble(t(res$G_Q_2))
     colnames(Y2) <- x_vec
     Y2 <- Y2 %>%
-      tidyr::pivot_longer(cols=everything(),names_to="x",values_to="value") %>%
+      tidyr::pivot_longer(cols=dplyr::everything(),names_to="x",values_to="value") %>%
       dplyr::mutate(dim=2,time = as.factor(paste("time =",t)))
 
     dat <- rbind(dat,Y1,Y2)
@@ -65,7 +66,7 @@ plot_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,
 
   # plots
   plot_y1 <- dat %>%
-    filter(dim == 1) %>%
+    dplyr::filter(dim == 1) %>%
     dplyr::mutate(X=paste("x =",x)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
@@ -75,10 +76,10 @@ plot_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + xlim(c(0,12))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,12))
 
   plot_y2 <- dat %>%
-    filter(dim == 2) %>%
+    dplyr::filter(dim == 2) %>%
     dplyr::mutate(X=paste("x =",x)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
@@ -88,53 +89,12 @@ plot_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + xlim(c(0,12))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,12))
 
   return(list(plot_data = dat,
               plot_y1=plot_y1,
               plot_y2=plot_y2))
 }
-
-
-# x_vec <- c(15,17,19,21)
-#
-# plots1 <- plot_marginals(x_vec=x_vec,t_vec=c(0.5,1),kappa = 5,
-#                          jump_dist = gamma,stress_type = "VaR",
-#                          stress_parms = list(c=0.9,VaR_stress=1.1))
-#
-# plots1$plot_y1
-# plots1$plot_y2
-
-
-# # fancy 2d plots
-# plot1 <- data.frame(Y1 = dplyr::filter(plots1$plot_data, x==x_vec[1],
-#                                        dim==1, time=="time = 1")$value,
-#                     Y2 = dplyr::filter(plots1$plot_data, x==x_vec[1],
-#                                        dim==2, time=="time = 1")$value) %>%
-#   ggplot(aes(Y1, Y2)) + geom_point() + theme_classic()
-# ggExtra::ggMarginal(plot1, type = "histogram")
-#
-# plot2 <- data.frame(Y1 = dplyr::filter(plots1$plot_data, x==x_vec[2],
-#                                        dim==1, time=="time = 1")$value,
-#                     Y2 = dplyr::filter(plots1$plot_data, x==x_vec[2],
-#                                        dim==2, time=="time = 1")$value) %>%
-#   ggplot(aes(Y1, Y2)) + geom_point() + theme_classic()
-# ggExtra::ggMarginal(plot2, type = "histogram")
-#
-# plot3 <- data.frame(Y1 = dplyr::filter(plots1$plot_data, x==x_vec[3],
-#                                        dim==1, time=="time = 1")$value,
-#                     Y2 = dplyr::filter(plots1$plot_data, x==x_vec[3],
-#                                        dim==2, time=="time = 1")$value) %>%
-#   ggplot(aes(Y1, Y2)) + geom_point() + theme_classic()
-# ggExtra::ggMarginal(plot3, type = "histogram")
-
-
-
-# plots1 <- plot_marginals(x_vec=x_vec,t_vec=c(0.5,1),kappa = 5,
-#                          jump_dist = gamma,stress_type = "VaR",
-#                          stress_parms = list(c=0.9,VaR_stress=1.2))
-# plots1$plot_y1
-# plots1$plot_y2
 
 
 # plot X_t at given time
@@ -154,16 +114,58 @@ plot_X_histogram <- function(object,time){
   X2 <- object$paths$X2[time_index,]
 
   dplyr::as_tibble(cbind(X1,X2)) %>%
-    tidyr::pivot_longer(cols=everything(),names_to="X",values_to="value") %>%
+    tidyr::pivot_longer(cols=dplyr::everything(),names_to="X",values_to="value") %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=20,alpha=0.6) +
     ggplot2::facet_grid(~X) +
     ggplot2::theme_bw(base_size = 14) +
-    ggplot2::theme(legend.position = "none") + xlim(c(0,40))
+    ggplot2::theme(legend.position = "none") + ggplot2::xlim(c(0,40))
 }
 
-# plot_X_histogram(gamma_example3,1)
 
+plot_X_point_marginal <- function(object,time){
+
+  time_index <- match(time,object$time_vec)
+
+  plot <- data.frame(X1 = object$paths$X1[time_index,],
+                     X2 = object$paths$X2[time_index,]) %>%
+    ggplot2::ggplot(aes(X1, X2)) +
+    ggplot2::geom_point() +
+    ggplot2::theme_bw()
+
+  ggExtra::ggMarginal(plot, type = "histogram")
+  # add colour: xparams=list(fill = "orange"), yparams = list(fill="green")
+}
+
+
+# compare X to baseline
+#' creates two-panel plot of histograms
+#'
+#' @param object RPS_model object
+#' @param time dbl, must be in object$time_vec
+#'
+#' @return
+#' @export
+#'
+compare_X_baseline_histogram <- function(object,time){
+
+  time_index <- match(time,object$time_vec)
+
+  X1 <- object$paths$X1[time_index,]
+  X2 <- object$paths$X2[time_index,]
+  X_baseline <- sim_baseline(object)[time_index,]
+
+  dplyr::as_tibble(cbind(X1,X_baseline,X2)) %>%
+    tidyr::pivot_longer(cols=dplyr::everything(),names_to="X",values_to="value") %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
+                            bins=20,alpha=0.6) +
+    ggplot2::geom_vline(ggplot2::aes(xintercept=object$stress_parms$q),lty=2,col="grey")+
+    ggplot2::facet_grid(~X) +
+    ggplot2::theme_bw(base_size = 14) +
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::xlim(c(0,40))
+}
 
 
