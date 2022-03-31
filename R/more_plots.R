@@ -76,7 +76,7 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parm
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,12))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,11))
 
   plot_y2 <- dat %>%
     dplyr::filter(dim == 2) %>%
@@ -89,7 +89,7 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parm
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,12))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,11))
 
   return(list(plot_data = dat,
               plot_y1=plot_y1,
@@ -130,7 +130,7 @@ plot_X_point_marginal <- function(object,time){
 
   plot <- data.frame(X1 = object$paths$X1[time_index,],
                      X2 = object$paths$X2[time_index,]) %>%
-    ggplot2::ggplot(aes(X1, X2)) +
+    ggplot2::ggplot(ggplot2::aes(X1, X2)) +
     ggplot2::geom_point() +
     ggplot2::theme_bw()
 

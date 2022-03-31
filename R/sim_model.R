@@ -153,11 +153,9 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
       # compute integral (kappa.Q):
       kappa_Q[j] <- delta_y * sum(h[j,] * dens_fun(y,parms))
       # draw from G.Q
-      weights1 <- approx(x=y,y=h[j,],xout=Draws[,1])$y / kappa_Q[j]    # compute weights
-      G_Q_1[j,] <- sample(Draws[,1],N_out,replace = TRUE,prob=weights1)   # sample 1 from G^Q
-
-      weights2 <- approx(x=y,y=h[j,],xout=Draws[,1])$y / kappa_Q[j]    # compute weights
-      G_Q_2[j,] <- sample(Draws[,2],N_out,replace = TRUE,prob=weights2)   # sample 1 from G^Q
+      weights <- approx(x=y,y=h[j,],xout=Draws[,1])$y / kappa_Q[j]    # compute weights
+      G_Q_1[j,] <- sample(Draws[,1],N_out,replace = TRUE,prob=weights)   # sample 1 from G^Q_1
+      G_Q_2[j,] <- sample(Draws[,2],N_out,replace = TRUE,prob=weights)   # sample 1 from G^Q_2
       # weights <- ifelse(weights < 0,0,weights)
     }
     return(list(kappa_Q = kappa * kappa_Q,
@@ -180,10 +178,9 @@ sim_baseline <- function(object){
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 
-      dim_X <- ifelse(is.list(paths), dim(paths$X1), dim(paths))
-      Npaths <- dim_X[2]
-
+      Npaths <- ifelse(is.list(paths), dim(paths$X1)[2], dim(paths)[2])
       Nsteps <- length(time_vec)
+
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
       X[1,] <- rep(0,Npaths)
 
