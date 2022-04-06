@@ -152,20 +152,71 @@ compare_X_baseline_histogram <- function(object,time){
 
   time_index <- match(time,object$time_vec)
 
-  X1 <- object$paths$X1[time_index,]
-  X2 <- object$paths$X2[time_index,]
-  X_baseline <- sim_baseline(object)[time_index,]
+  X1_Q <- cbind(X=object$paths$X1[time_index,], dim = 1, type="stressed")
+  X2_Q <- cbind(X=object$paths$X2[time_index,], dim = 2, type="stressed")
 
-  dplyr::as_tibble(cbind(X1,X_baseline,X2)) %>%
-    tidyr::pivot_longer(cols=dplyr::everything(),names_to="X",values_to="value") %>%
+  baseline_sim <- sim_baseline_biv(object)
+  X1_P <- cbind(X=baseline_sim$X1[time_index,], dim = 1, type="baseline")
+  X2_P <- cbind(X=baseline_sim$X2[time_index,], dim = 2, type="baseline")
+
+  plot_labels <- c('1'= 'X[1]',
+                '2'= 'X[2]',
+                'baseline' = 'baseline ~ (P)',
+                'stressed' = 'stressed ~ (Q)')
+
+  dplyr::as_tibble(rbind(X1_Q,X2_Q,X1_P,X2_P)) %>%
+    dplyr::mutate(dplyr::across(1,as.numeric)) %>%
     ggplot2::ggplot() +
-    ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
+    ggplot2::geom_histogram(ggplot2::aes(x=X,y=..density..,colour=dim,fill=dim),
                             bins=20,alpha=0.6) +
     ggplot2::geom_vline(ggplot2::aes(xintercept=object$stress_parms$q),lty=2,col="grey")+
-    ggplot2::facet_grid(~X) +
+    ggplot2::facet_grid(dim ~ type,
+                        labeller = ggplot2::as_labeller(plot_labels,ggplot2::label_parsed)) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlim(c(0,40))
+    ggplot2::xlim(c(0,40)) +
+    ggplot2::theme(strip.text.y = element_text(angle = 0))
 }
 
 
+# correlation_plot <- function(object,time){
+#
+#   time_index <- match(time,object$time_vec)
+#
+#   X1_Q <- cbind(X=object$paths$X1[time_index,], dim = 1, type="stressed")
+#   X2_Q <- cbind(X=object$paths$X2[time_index,], dim = 2, type="stressed")
+#
+#   baseline_sim <- sim_baseline_biv(object)
+#   X1_P <- cbind(X=baseline_sim$X1[time_index,], dim = 1, type="baseline")
+#   X2_P <- cbind(X=baseline_sim$X2[time_index,], dim = 2, type="baseline")
+#
+#   plot_labels <- c('1'= 'X[1]',
+#                    '2'= 'X[2]',
+#                    'baseline' = 'baseline ~ (P)',
+#                    'stressed' = 'stressed ~ (Q)')
+#
+#   corr_ind1 <- sapply(1:length(gamma_ind_ex2$time_vec),
+#                       function(t) cor.test(gamma_ind_ex2$paths$X1[t,],
+#                                            gamma_ind_ex2$paths$X2[t,],
+#                                            method = "spearman")$estimate)
+#   dat <- dplyr::as_tibble(list(corr=corr_ind1,time=gamma_ind_ex2$time_vec,df=1))
+#   corr_ind2 <- sapply(1:length(gamma_ind_ex2$time_vec),
+#                       function(t) cor.test(X1_P,
+#                                            X2_P,
+#                                            method = "spearman")$estimate)
+#   dat <- rbind(dat,dplyr::as_tibble(list(corr=corr_ind2,time=gamma_ind_ex2$time_vec,df=2)))
+#
+#   dplyr::as_tibble(rbind(X1_Q,X2_Q,X1_P,X2_P)) %>%
+#     dplyr::mutate(dplyr::across(1,as.numeric)) %>%
+#     ggplot2::ggplot() +
+#     ggplot2::geom_histogram(ggplot2::aes(x=X,y=..density..,colour=dim,fill=dim),
+#                             bins=20,alpha=0.6) +
+#     ggplot2::geom_vline(ggplot2::aes(xintercept=object$stress_parms$q),lty=2,col="grey")+
+#     ggplot2::facet_grid(dim ~ type,
+#                         labeller = ggplot2::as_labeller(plot_labels,ggplot2::label_parsed)) +
+#     ggplot2::theme_bw(base_size = 14) +
+#     ggplot2::theme(legend.position = "none") +
+#     ggplot2::xlim(c(0,40)) +
+#     ggplot2::theme(strip.text.y = element_text(angle = 0))
+# }
+#

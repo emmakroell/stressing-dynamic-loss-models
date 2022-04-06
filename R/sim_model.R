@@ -47,9 +47,9 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
-      x_max <- 5 * kappa * mean(jump_dist) # FIND A BETTER WAY TO DO THIS
-      x1_seq <- seq(0,x_max,by=1e-2)
-      x2_seq <- seq(0,x_max,by=1e-2)
+      x_max <- 8 * kappa * mean(jump_dist) # FIND A BETTER WAY TO DO THIS
+      x1_seq <- seq(0,x_max,by=2e-2)
+      x2_seq <- seq(0,x_max,by=2e-2)
       len_x <- length(x1_seq)
 
       G_grid1 <- array(dim=c(Nsteps,len_x))
@@ -91,7 +91,8 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
         # if X passed the grid max, return an error:
         if (any(c(X1[i,],X2[i,]) > x_max)){
-          stop("Path value exceeded grid max. Increase x.max. \n")
+          cat("max X1 ", max(X1[i,]), "max X2 ", max(X2[i,]), "\n")
+          stop("Path value exceeded grid max. Increase x max. \n")
           }
       }
     })
@@ -178,7 +179,7 @@ sim_baseline <- function(object){
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 
-      Npaths <- ifelse(is.list(paths), dim(paths$X1)[2], dim(paths)[2])
+      Npaths <- dim(paths)[2]
       Nsteps <- length(time_vec)
 
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
@@ -191,5 +192,35 @@ sim_baseline <- function(object){
       }
     })
     return(X)
+  })
+}
+
+sim_baseline_biv <- function(object){
+  with(object,{
+    # draw from the jump size distribution
+    withr::with_seed(720,{
+      # N draws from jump size distribution
+      Draws <- copula::rMvdc(1e4,jump_dist$biv_dist)
+
+      Npaths <- dim(paths$X1)[2]
+      Nsteps <- length(time_vec)
+
+      # empty matrices to store results
+      X1 <- matrix(nrow=Nsteps,ncol=Npaths)
+      X2 <- matrix(nrow=Nsteps,ncol=Npaths)
+
+      X1[1,] <- rep(0,Npaths)
+      X2[1,] <- rep(0,Npaths)
+
+      for (i in 2:Nsteps){
+        U <- runif(Npaths)
+        dt <- time_vec[i] - time_vec[i-1]
+        X1[i,] <- X1[i-1,] + sample(Draws[,1],Npaths,replace=TRUE) *
+          as.integer(U < (1 - exp(-kappa * dt)))
+        X2[i,] <- X2[i-1,] + sample(Draws[,2],Npaths,replace=TRUE) *
+          as.integer(U < (1 - exp(-kappa * dt)))
+      }
+    })
+    return(list(X1=X1,X2=X2))
   })
 }
