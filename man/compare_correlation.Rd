@@ -4,7 +4,7 @@
 \alias{compare_correlation}
 \title{Create plot comparing pathwise correlation under P and Q}
 \usage{
-compare_correlation(object, nsteps, method)
+compare_correlation(object, nsteps, method, copula = FALSE)
 }
 \arguments{
 \item{object}{RPS_model object}

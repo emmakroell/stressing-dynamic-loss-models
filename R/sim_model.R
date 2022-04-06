@@ -47,9 +47,9 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
-      x_max <- 8 * kappa * mean(jump_dist) # FIND A BETTER WAY TO DO THIS
-      x1_seq <- seq(0,x_max,by=2e-2)
-      x2_seq <- seq(0,x_max,by=2e-2)
+      x_max <- 6 * kappa * mean(jump_dist) # FIND A BETTER WAY TO DO THIS
+      x1_seq <- seq(0,x_max,by=1e-2)
+      x2_seq <- seq(0,x_max,by=1e-2)
       len_x <- length(x1_seq)
 
       G_grid1 <- array(dim=c(Nsteps,len_x))
@@ -74,6 +74,9 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       X2 <- matrix(nrow=Nsteps,ncol=Npaths)
       kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
 
+      jump_counter <- matrix(nrow=Nsteps,ncol=Npaths)
+      jump_counter[1,] <- rep(0,Npaths)
+
       X1[1,] <- rep(0,Npaths)   # X starts at 0 for all paths
       X2[1,] <- rep(0,Npaths)
       times <- seq(0,endtime,by=dt)
@@ -85,9 +88,15 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
         kappa_Q[i,] <- approx(x=x1_seq,y=kappa_grid[i-1,],xout=X1[i-1,])$y  # store kappa
         G_Q_draw1 <- approx(x=x1_seq,y=G_grid1[i-1,],xout=X1[i-1,])$y
         G_Q_draw2 <- approx(x=x2_seq,y=G_grid2[i-1,],xout=X2[i-1,])$y
+
         # simulate forward:
-        X1[i,] <- X1[i-1,] + G_Q_draw1 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
-        X2[i,] <- X2[i-1,] + G_Q_draw2 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+        # X1[i,] <- X1[i-1,] + G_Q_draw1 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+        # X2[i,] <- X2[i-1,] + G_Q_draw2 * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+        jump <- as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+        X1[i,] <- X1[i-1,] + G_Q_draw1 * jump
+        X2[i,] <- X2[i-1,] + G_Q_draw2 * jump
+        jump_counter[i,] <- jump_counter[i-1,] + jump
+
 
         # if X passed the grid max, return an error:
         if (any(c(X1[i,],X2[i,]) > x_max)){
@@ -100,7 +109,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
                   time_vec = times, paths = list(X1=X1, X2=X2),
-                  kappa_Q = kappa_Q)
+                  kappa_Q = kappa_Q, jumps = jump_counter)
   })
 }
 

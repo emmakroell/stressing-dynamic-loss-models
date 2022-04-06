@@ -11,8 +11,8 @@
 #' @return
 #' @export
 #'
-new_RPS_model <- function(jump_dist, kappa, stress_type,
-                          stress_parms, paths, time_vec, kappa_Q){
+new_RPS_model <- function(jump_dist, kappa, stress_type, stress_parms,
+                          paths, time_vec, kappa_Q, jumps){
 
   stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
 
@@ -22,7 +22,8 @@ new_RPS_model <- function(jump_dist, kappa, stress_type,
                 stress_parms = stress_parms, # list of stress parameters corresponding to stress type
                 paths = paths,
                 time_vec = time_vec,
-                kappa_Q = kappa_Q
+                kappa_Q = kappa_Q,
+                jumps = jumps
   )
   ## Name of the class
   attr(model, "class") <- "RPS_model"

@@ -78,6 +78,62 @@ plot_copula <- function(object,time){
 }
 
 
+#' Plot empirical copula contour plot under P and Q
+#'
+#' @param object RPS_model object
+#' @param time time at which to plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_copula_contour <- function(object,time){
+
+  time_index <- match(time,object$time_vec)
+  u <- seq(0, 1, length.out = 25)
+  grid <- as.matrix(expand.grid("x" = u, "y" = u))
+
+
+  # stressed
+  X1 <- object$paths$X1[time_index,]
+  X2 <- object$paths$X2[time_index,]
+  draws <- cbind(X1,X2)
+  ec <-  copula::C.n(grid, X = draws)
+  # contourplot2(cbind(as.matrix(grid),ec))
+  res_Q <- cbind(as.matrix(grid),ec)
+  colnames(res_Q) <- c("x", "y", "z")
+  res_Q <- dplyr::as_tibble(cbind(res_Q,measure="stressed")) %>%
+    dplyr::mutate(dplyr::across(1:3,as.numeric))
+  plot1 <- ggplot2::ggplot(res_Q, ggplot2::aes(x,y,z=z)) +
+    ggplot2::geom_contour_filled() +
+    ggplot2::theme_minimal()
+
+
+  # baseline
+  baseline <- sim_baseline_biv(object)
+  X1 <- baseline$X1[time_index,]
+  X2 <- baseline$X2[time_index,]
+  draws <- cbind(X1,X2)
+  ec <- copula::C.n(grid, X = draws)
+  # contourplot2(cbind(as.matrix(grid),ec))
+  res_P <- cbind(as.matrix(grid),ec)
+  colnames(res_P) <- c("x", "y", "z")
+  res_P <- dplyr::as_tibble(cbind(res_P,measure="original")) %>%
+    dplyr::mutate(dplyr::across(1:3,as.numeric))
+  plot2 <- ggplot2::ggplot(res_P, ggplot2::aes(x,y,z=z)) +
+    ggplot2::geom_contour_filled() +
+    ggplot2::theme_minimal()
+
+  # combined plot
+  plot <- rbind(res_P,res_Q) %>%
+    ggplot2::ggplot(ggplot2::aes(x,y,z=z,colour=measure)) +
+    ggplot2::geom_contour(lwd=1) +
+    ggplot2::theme_minimal()
+
+  return(list(plot_Q=plot1,plot_P=plot2,plot=plot))
+}
+
+
 
 #
 # # independent copula

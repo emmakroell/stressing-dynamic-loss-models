@@ -28,13 +28,20 @@ corr_CI <- function(r,n,method,alpha=0.05){
 #' @return
 #' @export
 #'
-pathwise_corr <- function(X1,X2,time_seq,method){
+pathwise_corr <- function(X1,X2,time_seq,method,copula=FALSE){
   estimate <- rep(NA, length(time_seq))
   lwr <- rep(NA, length(time_seq))
   upr <- rep(NA, length(time_seq))
 
   for (i in 1:length(time_seq)){
-    corr_temp <- stats::cor.test(X1[time_seq[i],],X2[time_seq[i],],method=method)
+    if (copula == TRUE) {
+      cop <- emp_copula(X1[time_seq[i],],X2[time_seq[i],])
+      corr_temp <- stats::cor.test(cop$U1,cop$U2,method=method)
+    } else{
+      corr_temp <- stats::cor.test(X1[time_seq[i],],
+                                   X2[time_seq[i],],
+                                   method=method)
+    }
     estimate[i] <- corr_temp$estimate
 
     if (method == "pearson"){
@@ -66,23 +73,23 @@ pathwise_corr <- function(X1,X2,time_seq,method){
 #' @return
 #' @export
 #'
-compare_correlation <- function(object,nsteps,method){
+compare_correlation <- function(object,nsteps,method,copula=FALSE){
   time_seq <- seq(1,length(object$time_vec),length.out=nsteps)
   baseline_sim <- sim_baseline_biv(object)
   X1_P <- baseline_sim$X1
   X2_P <- baseline_sim$X2
 
   cor1 <- cbind(pathwise_corr(object$paths$X1,object$paths$X2,
-                              time_seq,method=method),
+                              time_seq,method=method,copula=copula),
                 time = object$time_vec[time_seq],
                 measure="stressed")
-  cor2 <- cbind(pathwise_corr(X1_P,X2_P,time_seq,method=method),
+  cor2 <- cbind(pathwise_corr(X1_P,X2_P,time_seq,method=method,copula=copula),
                 time = object$time_vec[time_seq],
                 measure="original")
 
   plot <- rbind(cor1,cor2) %>%
     dplyr::mutate(dplyr::across(1:4, as.numeric))%>%
-    ggplot2::ggplot(aes(x=time,y=estimate,ymin=lwr,ymax=upr,
+    ggplot2::ggplot(ggplot2::aes(x=time,y=estimate,ymin=lwr,ymax=upr,
                         colour=measure,fill=measure)) +
     ggplot2::geom_line() + ggplot2::geom_ribbon(alpha=0.5) +
     ggplot2::theme_bw()
@@ -91,11 +98,13 @@ compare_correlation <- function(object,nsteps,method){
 }
 
 
+
+
 # compare_correlation(gamma_t_ex2,10,method="spearman")
 # compare_correlation(gamma_ind_ex2,50,method="spearman")
 #
-# res1 <- compare_correlation(gamma_ind_ex2,50)
-# res2 <- compare_correlation(gamma_t_ex2,50)
+# res1 <- compare_correlation(gamma_ind_ex2,20,method="kendall",copula=FALSE)
+# res2 <- compare_correlation(gamma_t_ex2,20,method="kendall",copula=FALSE)
 #
 # headings <- c('t' = "t copula", 'ind' = "Indpedent copula")
 #
@@ -104,7 +113,8 @@ compare_correlation <- function(object,nsteps,method){
 #   mutate(across(1:4, as.numeric))%>%
 #   ggplot(aes(x=time,y=estimate,ymin=lwr,ymax=upr)) +
 #   geom_line(aes(colour=measure)) + geom_ribbon(aes(fill=measure),alpha=0.5) +
-#   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) + theme_bw()
+#   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) + theme_bw() +
+#   ggtitle(expression("Kendall's" ~ tau ~ "(copula)"))
 #
 #
 #
@@ -146,5 +156,5 @@ compare_correlation <- function(object,nsteps,method){
 #   geom_ribbon(aes(fill=measure),alpha=0.5) +
 #   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings),nrow=1) +
 #   theme_bw() + ggtitle(expression("Kendall's" ~ tau))
-#
+
 

@@ -175,7 +175,7 @@ compare_X_baseline_histogram <- function(object,time){
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::xlim(c(0,40)) +
-    ggplot2::theme(strip.text.y = element_text(angle = 0))
+    ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0))
 }
 
 

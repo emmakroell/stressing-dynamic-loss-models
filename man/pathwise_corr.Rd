@@ -4,7 +4,7 @@
 \alias{pathwise_corr}
 \title{Compute correlation with CI along a path}
 \usage{
-pathwise_corr(X1, X2, time_seq, method)
+pathwise_corr(X1, X2, time_seq, method, copula = FALSE)
 }
 \arguments{
 \item{X1}{vector 1}
