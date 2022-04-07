@@ -125,17 +125,150 @@ plot_copula_contour <- function(object,time){
     ggplot2::theme_minimal()
 
   # combined plot
-  plot <- rbind(res_P,res_Q) %>%
+  data <- rbind(res_P,res_Q)
+  plot <- data %>%
     ggplot2::ggplot(ggplot2::aes(x,y,z=z,colour=measure)) +
     ggplot2::geom_contour(lwd=1) +
     ggplot2::theme_minimal()
 
-  return(list(plot_Q=plot1,plot_P=plot2,plot=plot))
+  return(list(data = data,
+              plot = plot))
+}
+
+#' Plot empirical copula density contour plot under P and Q
+#'
+#' @param object RPS_model object
+#' @param time time at which to plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+plot_copula_dens_contour <- function(object,time){
+
+  time_index <- match(time,object$time_vec)
+
+  # stressed
+  X1 <- object$paths$X1[time_index,]
+  X2 <- object$paths$X2[time_index,]
+  u1 <- copula::pobs(cbind(X1,X2))
+  kde.fit1 <- kdecopula::kdecop(u1)
+  plot(kde.fit1)
+  graphics::contour(kde.fit1,margins="unif",col="red",lwd=1.5,labcex=1.1,
+          cex.lab=1.5, cex.axis=1.5)
+
+  # baseline
+  baseline <- sim_baseline_biv(object)
+  X1 <- baseline$X1[time_index,]
+  X2 <- baseline$X2[time_index,]
+  u2 <- copula::pobs(cbind(X1,X2))
+  kde.fit2 <- kdecopula::kdecop(u2)
+  plot(kde.fit2)
+  graphics::contour(kde.fit2,margins="unif",col="blue",add=TRUE,lwd=1.5,labcex=1.1)
+  graphics::legend("bottomright", legend = c("Q", "P"),
+         col = c("red","blue"),lty=1:1,lwd=c(1.5,1.5),cex=1.4)
+
 }
 
 
-
+# plot_copula_dens_contour <- function(object,time){
 #
+#   time_index <- match(time,object$time_vec)
+#
+#   # stressed
+#   X1 <- object$paths$X1[time_index,]
+#   X2 <- object$paths$X2[time_index,]
+#   u1 <- copula::pobs(cbind(X1,X2))
+#   kde.fit1 <- kdecop(u1)
+#
+#   contour_dat_Q <- reshape2::melt(kde.fit1$estimate) %>%
+#     mutate(u1 = kde.fit1$grid[Var1],
+#            u2 = kde.fit1$grid[Var2]) %>%
+#     select(u1,u2,value)
+#
+#   plot1 <- ggplot(contour_dat_Q,aes(x=u1,y=u2,z=value)) +
+#     geom_contour(aes(colour = after_stat(level)),
+#                  breaks = c(0,0.5,1,1.5,2,3,4,5,10,15))+
+#     scale_colour_gradient(low = "red", high = "mediumorchid1") + theme_light()
+#
+#   # baseline
+#   baseline <- sim_baseline_biv(object)
+#   X1 <- baseline$X1[time_index,]
+#   X2 <- baseline$X2[time_index,]
+#   u2 <- copula::pobs(cbind(X1,X2))
+#   kde.fit2 <- kdecop(u2)
+#
+#   contour_dat_P <- reshape2::melt(kde.fit2$estimate) %>%
+#     mutate(u1 = kde.fit2$grid[Var1],
+#            u2 = kde.fit2$grid[Var2]) %>%
+#     select(u1,u2,value)
+#
+#   plot2 <- ggplot(contour_dat_P,aes(x=u1,y=u2,z=value)) +
+#     geom_contour(aes(colour = after_stat(level)),
+#                  breaks = c(0,0.5,1.5,1,2,3,4,5,10,15))+
+#     scale_colour_gradient(low = "blue", high = "cyan")+ theme_light()
+#
+#   combined_plot <- plot1 +
+#     scale_colour_gradient(low = "red", high = "mediumorchid1", name = "Q (level)") +
+#     ggnewscale::new_scale_color() +
+#     geom_contour(data=contour_dat_P,aes(colour = after_stat(level)),
+#                  breaks = c(0,0.5,1,1.5,2,3,4,5,10,15),lty=2)+
+#     scale_colour_gradient(low = "blue", high = "cyan", name = "P (level)")
+#
+#   return(list(plot1=plot1,plot2=plot2,combined_plot=combined_plot))
+# }
+
+# res1 <- plot_copula_dens_contour(gamma_ind_ex,1)
+# res1$combined_plot +
+#   ggtitle("Copula density for terminal path values, jumps independent")
+# ggpubr::ggarrange(res1$plot2+ggtitle("P-measure"),
+#                   res1$plot1+ggtitle("Q-measure"))
+#
+# res2 <- plot_copula_dens_contour(gamma_t_ex,1)
+# res2$combined_plot +
+#   ggtitle("Copula density for terminal path values, jumps independent")
+# ggpubr::ggarrange(res2$plot2+ggtitle("P-measure"),
+#                   res2$plot1+ggtitle("Q-measure"))
+
+# res1 <- plot_copula_contour(gamma_ind_ex,1)
+# res2 <- plot_copula_contour(gamma_t_ex,1)
+#
+#
+# headings <- c('t' = "t copula", 'ind' = "Indepedent copula")
+#
+# rbind(dplyr::mutate(res1$data,copula="ind"),
+#       dplyr::mutate(res2$data,copula="t")) %>%
+#   ggplot2::ggplot(ggplot2::aes(x=x,y=y,z=z,colour=measure)) +
+#   ggplot2::geom_contour(lwd=1.1) +
+#   ggplot2::theme_bw(base_size = 14) +
+#   ggplot2::facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) +
+#   ggplot2::theme(legend.position = "bottom") +
+#   ggplot2::xlab("X1") + ggplot2::ylab("X2")
+#
+#
+#
+# res1 <- plot_copula_contour(gamma_ind_ex,1)
+# res2 <- plot_copula_contour(gamma_t_ex,1)
+# res3 <- plot_copula_contour(gamma_counter_ex,1)
+# res4 <- plot_copula_contour(gamma_comono_ex,1)
+#
+# headings <- c('t' = "t copula", 'ind' = "Indpedent copula",
+#               "counter" = "Countermonotonic copula",
+#               "comono" = "Comonotonic copula")
+#
+# rbind(dplyr::mutate(res1$data,copula="ind"),
+#       dplyr::mutate(res2$data,copula="t"),
+#       dplyr::mutate(res3$data,copula="counter"),
+#       dplyr::mutate(res3$data,copula="comono")) %>%
+#   ggplot2::ggplot(ggplot2::aes(x=x,y=y,z=z,colour=measure)) +
+#   ggplot2::geom_contour(lwd=1) +
+#   ggplot2::theme_minimal() +
+#   ggplot2::facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) +
+#   ggplot2::theme(legend.position = "bottom") +
+#   ggplot2::xlab("X1") + ggplot2::ylab("X2")
+#
+#
+# #
 # # independent copula
 # cop <- indepCopula(dim=2)
 # dist <-  mvdc(copula=cop, margins=c("gamma", "gamma"),

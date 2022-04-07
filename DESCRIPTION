@@ -18,7 +18,8 @@ Imports:
     tidyr,
     withr,
     plotly,
-    copula
+    copula,
+    kdecopula
 Suggests: 
     rmarkdown,
     knitr

@@ -55,7 +55,7 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 new_RPS_dist <- function(copula, margins, sim_fun, dens_fun,
                          char_fun, mean_fun, parms) {
   # copula <- copula(param = NULL, dim=2) #copula(0.5,dim=2) #for normal FIX
-  biv_dist = mvdc(copula=copula,
+  biv_dist = copula::mvdc(copula=copula,
                   margins=margins,
                   paramMargins=list(list(shape=parms$alpha1,
                                          scale=parms$beta1),
