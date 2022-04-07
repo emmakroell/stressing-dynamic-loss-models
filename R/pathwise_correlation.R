@@ -98,32 +98,32 @@ compare_correlation <- function(object,nsteps,method,copula=FALSE){
 }
 
 
-
-
+#
+#
 # compare_correlation(gamma_t_ex2,10,method="spearman")
 # compare_correlation(gamma_ind_ex2,50,method="spearman")
 #
-# res1 <- compare_correlation(gamma_ind_ex2,20,method="kendall",copula=FALSE)
-# res2 <- compare_correlation(gamma_t_ex2,20,method="kendall",copula=FALSE)
+# res1 <- compare_correlation(gamma_ind_ex,50,method="kendall",copula=FALSE)
+# res2 <- compare_correlation(gamma_t_ex,50,method="kendall",copula=FALSE)
 #
-# headings <- c('t' = "t copula", 'ind' = "Indpedent copula")
+# headings <- c('t' = "t copula", 'ind' = "Indepedent copula")
 #
 # rbind(cbind(res1$cor,copula = "ind"),
 #       cbind(res2$cor,copula = "t")) %>%
 #   mutate(across(1:4, as.numeric))%>%
 #   ggplot(aes(x=time,y=estimate,ymin=lwr,ymax=upr)) +
 #   geom_line(aes(colour=measure)) + geom_ribbon(aes(fill=measure),alpha=0.5) +
-#   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) + theme_bw() +
-#   ggtitle(expression("Kendall's" ~ tau ~ "(copula)"))
+#   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings)) +
+#   theme_bw(base_size = 14) +
+#   ggtitle(expression("Kendall's" ~ tau))
 #
 #
-#
-# res1 <- compare_correlation(gamma_ind_ex2,50,method="spearman")
-# res2 <- compare_correlation(gamma_t_ex2,50,method="spearman")
+# res1 <- compare_correlation(gamma_ind_ex,50,method="spearman")
+# res2 <- compare_correlation(gamma_t_ex,50,method="spearman")
 # res3 <- compare_correlation(gamma_counter_ex,50,method="spearman")
 # res4 <- compare_correlation(gamma_comono_ex,50,method="spearman")
 #
-# headings <- c('t' = "t copula", 'ind' = "Indpedent copula",
+# headings <- c('t' = "t copula", 'ind' = "Indepedent copula",
 #               "counter" = "Countermonotonic","comono" = "Comonotonic")
 #
 # rbind(cbind(res1$cor,copula = "ind"),
@@ -136,8 +136,8 @@ compare_correlation <- function(object,nsteps,method,copula=FALSE){
 #   geom_ribbon(aes(fill=measure),alpha=0.5) +
 #   facet_wrap(~copula,labeller = ggplot2::as_labeller(headings),nrow=1) +
 #   theme_bw() + ggtitle(expression("Spearman's" ~ rho))
-#
-#
+
+
 # res1 <- compare_correlation(gamma_ind_ex2,20,method="kendall")
 # res2 <- compare_correlation(gamma_t_ex2,20,method="kendall")
 # res3 <- compare_correlation(gamma_counter_ex,20,method="kendall")

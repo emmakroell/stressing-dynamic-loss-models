@@ -18,31 +18,6 @@ emp_copula <- function(X1,X2){
 }
 
 
-
-# plot_copula <- function(object,time){
-#   time_index <- match(time,object$time_vec)
-#
-#   # stressed
-#   X1 <- object$paths$X1[time_index,]
-#   X2 <- object$paths$X2[time_index,]
-#   stressed <- emp_copula(X1,X2) %>%
-#     dplyr::mutate(type = "stressed")
-#
-#   # baseline
-#   baseline <- sim_baseline_biv(object)
-#   X1 <- baseline$X1[time_index,]
-#   X2 <- baseline$X2[time_index,]
-#   baseline <- emp_copula(X1,X2) %>%
-#     dplyr::mutate(type = "baseline")
-#
-#   rbind(baseline,stressed) %>%
-#     ggplot2::ggplot(ggplot2::aes(U1,U2,colour=type,alpha=type)) +
-#     ggplot2::geom_point(size=1) +
-#     ggplot2::theme_bw(base_size=14) +
-#     ggplot2::scale_alpha_discrete(range=c(0.5,0.3))
-# }
-
-
 #' Plot empirical copula under P and Q
 #'
 #' @param object RPS_model object
@@ -154,8 +129,9 @@ plot_copula_dens_contour <- function(object,time){
   u1 <- copula::pobs(cbind(X1,X2))
   kde.fit1 <- kdecopula::kdecop(u1)
   plot(kde.fit1)
-  graphics::contour(kde.fit1,margins="unif",col="red",lwd=1.5,labcex=1.1,
-          cex.lab=1.5, cex.axis=1.5)
+  graphics::contour(kde.fit1,margins="unif",levels = c(0.1,0.5,1.5,2,3),
+                    col="#F8766D",lwd=2,cex.lab=1.5,cex.axis=1.5,
+                    labcex=1.1,vfont=c("sans serif", "bold"))
 
   # baseline
   baseline <- sim_baseline_biv(object)
@@ -164,14 +140,17 @@ plot_copula_dens_contour <- function(object,time){
   u2 <- copula::pobs(cbind(X1,X2))
   kde.fit2 <- kdecopula::kdecop(u2)
   plot(kde.fit2)
-  graphics::contour(kde.fit2,margins="unif",col="blue",add=TRUE,lwd=1.5,labcex=1.1)
+  graphics::contour(kde.fit2,margins="unif",levels = c(0.1,0.5,1.5,2,3),
+                    col="#00BFC4",add=TRUE,lwd=2,
+                    labcex=1.1,vfont=c("sans serif", "bold"))
+  # add legend
   graphics::legend("bottomright", legend = c("Q", "P"),
-         col = c("red","blue"),lty=1:1,lwd=c(1.5,1.5),cex=1.4)
+         col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.2)
 
 }
 
 
-# plot_copula_dens_contour <- function(object,time){
+# plot_copula_dens_contour_v2 <- function(object,time){
 #
 #   time_index <- match(time,object$time_vec)
 #
@@ -217,14 +196,14 @@ plot_copula_dens_contour <- function(object,time){
 #
 #   return(list(plot1=plot1,plot2=plot2,combined_plot=combined_plot))
 # }
-
-# res1 <- plot_copula_dens_contour(gamma_ind_ex,1)
+#
+# res1 <- plot_copula_dens_contour_v2(gamma_ind_ex,1)
 # res1$combined_plot +
 #   ggtitle("Copula density for terminal path values, jumps independent")
 # ggpubr::ggarrange(res1$plot2+ggtitle("P-measure"),
 #                   res1$plot1+ggtitle("Q-measure"))
 #
-# res2 <- plot_copula_dens_contour(gamma_t_ex,1)
+# res2 <- plot_copula_dens_contour_v2(gamma_t_ex,1)
 # res2$combined_plot +
 #   ggtitle("Copula density for terminal path values, jumps independent")
 # ggpubr::ggarrange(res2$plot2+ggtitle("P-measure"),
