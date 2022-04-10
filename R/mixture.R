@@ -72,7 +72,7 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
       Nsteps <- endtime / dt + 1   # number of steps to take
 
       if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-        stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+        stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist) /2
       }
       if ((stress_type == "CVaR") & is.null(stress_parms$s) &
           !(is.null(stress_parms$CVaR_stress))){
@@ -269,6 +269,97 @@ sim_baseline_mixture <- function(object){
 plot_copula_contour_mixture <- function(object,time){
 
   time_index <- match(time,object$time_vec)
+  u <- seq(0, 1, length.out = 25)
+  grid <- as.matrix(expand.grid("x" = u, "y" = u))
+
+
+  # stressed
+  X1 <- object$paths$X1[time_index,]
+  X2 <- object$paths$X2[time_index,]
+  draws <- cbind(X1,X2)
+  ec <-  copula::C.n(grid, X = draws)
+  # contourplot2(cbind(as.matrix(grid),ec))
+  res_Q <- cbind(as.matrix(grid),ec)
+  colnames(res_Q) <- c("x", "y", "z")
+  res_Q <- dplyr::as_tibble(cbind(res_Q,measure="stressed")) %>%
+    dplyr::mutate(dplyr::across(1:3,as.numeric))
+  plot1 <- ggplot2::ggplot(res_Q, ggplot2::aes(x,y,z=z)) +
+    ggplot2::geom_contour_filled() +
+    ggplot2::theme_minimal()
+
+
+  # baseline
+  baseline <- sim_baseline_mixture(object)
+  X1 <- baseline$X1[time_index,]
+  X2 <- baseline$X2[time_index,]
+  draws <- cbind(X1,X2)
+  ec <- copula::C.n(grid, X = draws)
+  # contourplot2(cbind(as.matrix(grid),ec))
+  res_P <- cbind(as.matrix(grid),ec)
+  colnames(res_P) <- c("x", "y", "z")
+  res_P <- dplyr::as_tibble(cbind(res_P,measure="original")) %>%
+    dplyr::mutate(dplyr::across(1:3,as.numeric))
+  plot2 <- ggplot2::ggplot(res_P, ggplot2::aes(x,y,z=z)) +
+    ggplot2::geom_contour_filled() +
+    ggplot2::theme_minimal()
+
+  xy <- NULL
+  for (constant in seq(0.1,0.9,by=0.1)){
+    xy <- rbind(xy, as_tibble(list(x = seq(0,1,0.01),
+                                   y = sapply(seq(0,1,0.01),
+                                              function(x) min(constant/x,1)),
+                                   constant = constant)))
+  }
+  xy <- mutate(xy,across(3,as.numeric),
+               y = ifelse(y==1,NA,y))
+
+  # combined plot
+  data <- rbind(res_P,res_Q) %>% mutate(measure = fct_rev(measure))
+  plot <- data %>%
+    ggplot2::ggplot() +
+    ggplot2::geom_contour(ggplot2::aes(x,y,z=z,colour=measure,
+                                       linetype = "simulated"),lwd=1) +
+    ggplot2::geom_line(data = xy, aes(x,y,group=constant,
+                                      linetype = "true independence"), lty = 2) +
+    ggplot2::theme_minimal() +
+    scale_linetype_manual(values=c("simulated" = 1, "true independence" = 3))
+
+  return(list(data = data,
+              plot = plot))
+}
+
+
+plot_copula_mixture <- function(object,time){
+  time_index <- match(time,object$time_vec)
+
+  # stressed
+  X1 <- object$paths$X1[time_index,]
+  X2 <- object$paths$X2[time_index,]
+  stressed <- emp_copula(X1,X2) %>%
+    dplyr::mutate(type = "stressed")
+
+  # baseline
+  baseline <- sim_baseline_mixture(object)
+  X1 <- baseline$X1[time_index,]
+  X2 <- baseline$X2[time_index,]
+  baseline <- emp_copula(X1,X2) %>%
+    dplyr::mutate(type = "baseline")
+
+  rbind(baseline,stressed) %>%
+    ggplot2::ggplot(ggplot2::aes(U1,U2,colour=type)) +
+    ggplot2::facet_grid(~type)+
+    ggplot2::geom_point(size=1,alpha=0.4) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none")
+  # ggplot2::scale_alpha_discrete(range=c(0.7,0.4))
+}
+
+
+
+
+plot_copula_dens_contour_mixture <- function(object,time){
+
+  time_index <- match(time,object$time_vec)
 
   # stressed
   X1 <- object$paths$X1[time_index,]
@@ -296,23 +387,29 @@ plot_copula_contour_mixture <- function(object,time){
 
 }
 #===============================================================================
-# gamma_mixed <- new_RPS_dist_mix(sim_fun_a = function(x,parms) rgamma(x,shape=parms$alpha1,
-#                                                                rate=parms$beta1),
-#                             sim_fun_b = function(x,parms) rgamma(x,shape=parms$alpha2,
-#                                                                  rate=parms$beta2),
-#                             dens_fun = function(x,parms) dgamma(x,shape=parms$alpha1,
-#                                                                 rate=parms$beta1),
-#                             char_fun = function(x,parms) (1 - 1i*x/parms$beta1)^(-parms$alpha1),
-#                             mean_fun = function(parms) parms$alpha1/parms$beta1,
-#                             parms = list(alpha1 = 2, beta1=1,
-#                                          alpha2=2, beta2=1,
-#                                          p = 0.5))
-#
-# tm <- proc.time()
-# mixed_ex <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
-#                              stress_type = "VaR",
-#                              stress_parms = list(c=0.9,VaR_stress=1.2),
-#                              Npaths=1e4, endtime=1, dt=1e-2)
-# proc.time() - tm
+gamma_mixed <- new_RPS_dist_mix(sim_fun_a = function(x,parms) rgamma(x,shape=parms$alpha1,
+                                                               rate=parms$beta1),
+                            sim_fun_b = function(x,parms) rgamma(x,shape=parms$alpha2,
+                                                                 rate=parms$beta2),
+                            dens_fun = function(x,parms) dgamma(x,shape=parms$alpha1,
+                                                                rate=parms$beta1),
+                            char_fun = function(x,parms) (1 - 1i*x/parms$beta1)^(-parms$alpha1),
+                            mean_fun = function(parms) parms$alpha1/parms$beta1,
+                            parms = list(alpha1 = 2, beta1=1,
+                                         alpha2=2, beta2=1,
+                                         p = 0.5))
 
+tm <- proc.time()
+mixed_ex_5 <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
+                             stress_type = "VaR",
+                             stress_parms = list(c=0.9,VaR_stress=1.2),
+                             Npaths=1e4, endtime=1, dt=2e-3)
+proc.time() - tm
+
+tm <- proc.time()
+mixed_ex_10 <- stressed_sim_mix(kappa = 10, jump_dist = gamma_mixed,
+                               stress_type = "VaR",
+                               stress_parms = list(c=0.9,VaR_stress=1.2),
+                               Npaths=1e4, endtime=1, dt=2e-3)
+proc.time() - tm
 

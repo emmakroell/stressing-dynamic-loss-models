@@ -99,12 +99,23 @@ plot_copula_contour <- function(object,time){
     ggplot2::geom_contour_filled() +
     ggplot2::theme_minimal()
 
+  xy <- NULL
+  for (constant in seq(0.1,0.9,by=0.1)){
+    xy <- rbind(xy, as_tibble(list(x = seq(0,1,0.01),
+                                   y = sapply(seq(0,1,0.01),
+                                              function(x) min(constant/x,1)),
+                                   constant = constant)))
+  }
+  xy <- mutate(xy,across(3,as.numeric),
+               y = ifelse(y==1,NA,y))
+
   # combined plot
-  data <- rbind(res_P,res_Q)
+  data <- rbind(res_P,res_Q) %>% mutate(measure = fct_rev(measure))
   plot <- data %>%
-    ggplot2::ggplot(ggplot2::aes(x,y,z=z,colour=measure)) +
-    ggplot2::geom_contour(lwd=1) +
-    ggplot2::theme_minimal()
+    ggplot2::ggplot() +
+    ggplot2::geom_contour(ggplot2::aes(x,y,z=z,colour=measure), lwd=1) +
+    ggplot2::theme_minimal() +
+    ggplot2::geom_line(data = xy, aes(x,y,group=constant), lty = 2)
 
   return(list(data = data,
               plot = plot))
