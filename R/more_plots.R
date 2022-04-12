@@ -148,21 +148,22 @@ plot_X_point_marginal <- function(object,time){
 #' @return
 #' @export
 #'
-compare_X_baseline_histogram <- function(object,time){
+compare_X_baseline_histogram <- function(object,time,type){
 
   time_index <- match(time,object$time_vec)
 
   X1_Q <- cbind(X=object$paths$X1[time_index,], dim = 1, type="stressed")
   X2_Q <- cbind(X=object$paths$X2[time_index,], dim = 2, type="stressed")
 
-  baseline_sim <- sim_baseline_biv(object)
+  if (type == "copula") baseline_sim <- sim_baseline_biv(object)
+  else if (type == "mixture") baseline_sim <- sim_baseline_mixture(object)
   X1_P <- cbind(X=baseline_sim$X1[time_index,], dim = 1, type="baseline")
   X2_P <- cbind(X=baseline_sim$X2[time_index,], dim = 2, type="baseline")
 
   plot_labels <- c('1'= 'X[1]',
-                '2'= 'X[2]',
-                'baseline' = 'baseline ~ (P)',
-                'stressed' = 'stressed ~ (Q)')
+                   '2'= 'X[2]',
+                   'baseline' = 'baseline ~ (P)',
+                   'stressed' = 'stressed ~ (Q)')
 
   dplyr::as_tibble(rbind(X1_Q,X2_Q,X1_P,X2_P)) %>%
     dplyr::mutate(dplyr::across(1,as.numeric)) %>%

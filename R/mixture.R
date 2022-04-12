@@ -1,10 +1,11 @@
 # Mixture model code
-new_RPS_dist_mix <- function(sim_fun_a, sim_fun_b, dens_fun,
+new_RPS_dist_mix <- function(sim_fun_a, sim_fun_b, dens_fun_a, dens_fun_b,
                                  char_fun, mean_fun,parms) {
 
   model <- list(sim_fun_a = sim_fun_a,
                 sim_fun_b = sim_fun_b,
-                dens_fun = dens_fun,
+                dens_fun_a = dens_fun_a,
+                dens_fun_b = dens_fun_b,
                 char_fun = char_fun,
                 mean_fun = mean_fun,
                 parms = parms
@@ -70,9 +71,14 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
       Draws_b <- sim_fun_b(Ndraws,parms)
 
       Nsteps <- endtime / dt + 1   # number of steps to take
+      times <- seq(0,endtime,by=dt)
 
       if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-        stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist) /2
+        # baseline <- sim_baseline_mixture(jump_dist=jump_dist,kappa=kappa,
+        #                                  Npaths=Npaths,time_vec=times)
+        # VaR_estimate <- quantile(baseline$X1[length(times),], 0.9, type=1)
+        # stress_parms$q <- stress_parms$VaR_stress * VaR_estimate
+        stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
       }
       if ((stress_type == "CVaR") & is.null(stress_parms$s) &
           !(is.null(stress_parms$CVaR_stress))){
@@ -89,7 +95,6 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
                                       dist=jump_dist))
 
       # create grid of Gs and kappas
-      times <- seq(0,endtime,by=dt)
       # choose X max based on parameters:
       x_max <- 6 * kappa * mean(jump_dist) # IMPROVE LATER
       x1_seq <- seq(0,x_max,by=1e-2)
@@ -188,7 +193,7 @@ sim_G_kappa_mix <- function(t,x,eta,kappa,stress_type,stress_parms,dist,p,
   with(c(dist,stress_parms), {
     # x is a vector
     xlen <- length(x)
-    y_max <- seq(1,y_max)[which(dens_fun(seq(1,y_max),parms) < tol)[1]]
+    y_max <- seq(1,y_max)[which(dens_fun_a(seq(1,y_max),parms) < tol)[1]]
     y <- seq(0,y_max,by=delta_y)
     ylen <- length(y)
     h <- array(dim=c(xlen,ylen))
@@ -208,21 +213,29 @@ sim_G_kappa_mix <- function(t,x,eta,kappa,stress_type,stress_parms,dist,p,
 
     for (j in 1:xlen){
       # compute integral (kappa.Q):
-      h_integral <- delta_y * sum(h[j,] * dens_fun(y,parms))
-      kappa_Q[j] <- 1 - p + p * h_integral
+      h_integral_a <- delta_y * sum(h[j,] * dens_fun_a(y,parms))
+      h_integral_b <- delta_y * sum(h[j,] * dens_fun_b(y,parms))
+      kappa_Q[j] <- 1 - p + p * h_integral_a
       # new weight between distributions
-      p_Q[j] <- p * h_integral / kappa_Q[j]
+      p_Q[j] <- p * h_integral_a / kappa_Q[j]
       # draw from G.Q
-      which_dist <- sample(c("a","b"),1,prob=c(p_Q[j],1-p_Q[j]))
-      if (which_dist == "a") {
-        weights <- approx(x=y,y=h[j,],xout=Draws_a)$y / kappa_Q[j]    # compute weights
-        G_Q_1[j,] <- sample(Draws_a,N_out,replace = TRUE,prob=weights)   # sample 1 from G^Q_a
-        G_Q_2[j,] <- 0 # X_2 does not jump!
-      } else if (which_dist == "b") {
-        weights <- approx(x=y,y=h[j,],xout=Draws_b)$y / kappa_Q[j]    # compute weights
-        G_Q_1[j,] <- 0 # X_1 does not jump!
-        G_Q_2[j,] <- sample(Draws_b,N_out,replace = TRUE,prob=weights) # sample 1 from G^Q_b
-      }
+      u <- rbinom(1,size=1,prob=p_Q[j])
+      if (u == 1) weights <- approx(x=y,y=h[j,],xout=Draws_a)$y
+      else weights <- approx(x=y,y=h[j,],xout=Draws_b)$y
+      weights <- weights / kappa_Q[j]
+      G_Q_1[j,] <- u * sample(Draws_a,N_out,replace = TRUE,prob=weights)
+      G_Q_2[j,] <- (1-u) * sample(Draws_b,N_out,replace = TRUE,prob=weights)
+
+      # which_dist <- sample(c("a","b"),1,prob=c(p_Q[j],1-p_Q[j]))
+      # if (which_dist == "a") {
+      #   weights <- approx(x=y,y=h[j,],xout=Draws_a)$y / kappa_Q[j]    # compute weights
+      #   G_Q_1[j,] <- sample(Draws_a,N_out,replace = TRUE,prob=weights)   # sample 1 from G^Q_a
+      #   G_Q_2[j,] <- 0 # X_2 does not jump!
+      # } else if (which_dist == "b") {
+      #   weights <- approx(x=y,y=h[j,],xout=Draws_b)$y / kappa_Q[j]    # compute weights
+      #   G_Q_1[j,] <- 0 # X_1 does not jump!
+      #   G_Q_2[j,] <- sample(Draws_b,N_out,replace = TRUE,prob=weights) # sample 1 from G^Q_b
+      # }
     }
     return(list(kappa_Q = kappa * kappa_Q,
                 G_Q_1  = G_Q_1,
@@ -232,37 +245,40 @@ sim_G_kappa_mix <- function(t,x,eta,kappa,stress_type,stress_parms,dist,p,
 }
 
 
-sim_baseline_mixture <- function(object){
-  with(object,{
-    # draw from the jump size distribution
-    withr::with_seed(720,{
-      # N draws from jump size distribution
-      Draws_a <- jump_dist$sim_fun_a(1e4,jump_dist$parms)
-      Draws_b <- jump_dist$sim_fun_b(1e4,jump_dist$parms)
+sim_baseline_mixture <- function(object=NULL,jump_dist=NULL,
+                                 kappa=NULL,Npaths=NULL,time_vec=NULL){
+  if (!is.null(object)){
+    jump_dist <- object$jump_dist
+    Npaths <- dim(object$paths$X1)[2]
+    time_vec <- object$time_vec
+    kappa <- object$kappa
+  }
+  # draw from the jump size distribution
+  withr::with_seed(720,{
+    # N draws from jump size distribution
+    Draws_a <- jump_dist$sim_fun_a(1e4,jump_dist$parms)
+    Draws_b <- jump_dist$sim_fun_b(1e4,jump_dist$parms)
 
-      Npaths <- dim(paths$X1)[2]
-      Nsteps <- length(time_vec)
+    Nsteps <- length(time_vec)
 
-      # empty matrices to store results
-      X1 <- matrix(nrow=Nsteps,ncol=Npaths)
-      X2 <- matrix(nrow=Nsteps,ncol=Npaths)
+    # empty matrices to store results
+    X1 <- matrix(nrow=Nsteps,ncol=Npaths)
+    X2 <- matrix(nrow=Nsteps,ncol=Npaths)
 
-      X1[1,] <- rep(0,Npaths)
-      X2[1,] <- rep(0,Npaths)
+    X1[1,] <- rep(0,Npaths)
+    X2[1,] <- rep(0,Npaths)
 
-      for (i in 2:Nsteps){
-        which_dist <- sample(c("a","b"), Npaths, replace=TRUE,
-                             prob=c(jump_dist$parms$p,1-jump_dist$parms$p))
-        G_1 <- ifelse(which_dist == "a", sample(Draws_a,Npaths,replace = TRUE), 0)
-        G_2 <- ifelse(which_dist == "b", sample(Draws_b,Npaths,replace = TRUE), 0)
-        U <- runif(Npaths)
-        dt <- time_vec[i] - time_vec[i-1]
-        X1[i,] <- X1[i-1,] + G_1 * as.integer(U < (1 - exp(-kappa * dt)))
-        X2[i,] <- X2[i-1,] + G_2 * as.integer(U < (1 - exp(-kappa * dt)))
+    for (i in 2:Nsteps){
+      u <- rbinom(Npaths,size=1,prob=jump_dist$parms$p)
+      G_1 <- u * sample(Draws_a,Npaths,replace = TRUE)
+      G_2 <- (1-u) * sample(Draws_b,Npaths,replace = TRUE)
+      U <- runif(Npaths)
+      dt <- time_vec[i] - time_vec[i-1]
+      X1[i,] <- X1[i-1,] + G_1 * as.integer(U < (1 - exp(-kappa * dt)))
+      X2[i,] <- X2[i-1,] + G_2 * as.integer(U < (1 - exp(-kappa * dt)))
       }
     })
     return(list(X1=X1,X2=X2))
-  })
 }
 
 
@@ -305,24 +321,24 @@ plot_copula_contour_mixture <- function(object,time){
 
   xy <- NULL
   for (constant in seq(0.1,0.9,by=0.1)){
-    xy <- rbind(xy, as_tibble(list(x = seq(0,1,0.01),
+    xy <- rbind(xy, dplyr::as_tibble(list(x = seq(0,1,0.01),
                                    y = sapply(seq(0,1,0.01),
                                               function(x) min(constant/x,1)),
                                    constant = constant)))
   }
-  xy <- mutate(xy,across(3,as.numeric),
+  xy <-dplyr:: mutate(xy,dplyr::across(3,as.numeric),
                y = ifelse(y==1,NA,y))
 
   # combined plot
-  data <- rbind(res_P,res_Q) %>% mutate(measure = fct_rev(measure))
+  data <- rbind(res_P,res_Q) %>% dplyr::mutate(measure = forcats::fct_rev(measure))
   plot <- data %>%
     ggplot2::ggplot() +
     ggplot2::geom_contour(ggplot2::aes(x,y,z=z,colour=measure,
                                        linetype = "simulated"),lwd=1) +
-    ggplot2::geom_line(data = xy, aes(x,y,group=constant,
+    ggplot2::geom_line(data = xy, ggplot2::aes(x,y,group=constant,
                                       linetype = "true independence"), lty = 2) +
     ggplot2::theme_minimal() +
-    scale_linetype_manual(values=c("simulated" = 1, "true independence" = 3))
+    ggplot2::scale_linetype_manual(values=c("simulated" = 1, "true independence" = 3))
 
   return(list(data = data,
               plot = plot))
@@ -386,30 +402,46 @@ plot_copula_dens_contour_mixture <- function(object,time){
                    col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.2)
 
 }
+
+
 #===============================================================================
-gamma_mixed <- new_RPS_dist_mix(sim_fun_a = function(x,parms) rgamma(x,shape=parms$alpha1,
-                                                               rate=parms$beta1),
-                            sim_fun_b = function(x,parms) rgamma(x,shape=parms$alpha2,
-                                                                 rate=parms$beta2),
-                            dens_fun = function(x,parms) dgamma(x,shape=parms$alpha1,
-                                                                rate=parms$beta1),
-                            char_fun = function(x,parms) (1 - 1i*x/parms$beta1)^(-parms$alpha1),
-                            mean_fun = function(parms) parms$alpha1/parms$beta1,
-                            parms = list(alpha1 = 2, beta1=1,
-                                         alpha2=2, beta2=1,
-                                         p = 0.5))
+#
+# # density function
+# dMixture <- function(x,p,alpha,beta){
+#   p * dgamma(x,shape=alpha,rate=beta) + (1-p) * ifelse(x==0, 1, 0)
+# }
+#
+# # distribution function
+# pMixture <- function(q,p,alpha,beta){
+#   p * pgamma(q,shape=alpha,rate=beta) + (1-p) * ifelse(q >= 0, 1, 0)
+# }
+#
+# # simulation function
+# rMixture <- function(n,p,alpha,beta){
+#   u <- rbinom(n,size=1,prob=p)
+#   u *  rgamma(n,shape=alpha,rate=beta) + (1-u) * 0
+# }
+#
+# # characteristic function
+# cMixture <- function(x,p,alpha,beta){
+#   p * (1 - 1i*x/beta)^(-alpha) + 1 - p
+# }
 
-tm <- proc.time()
-mixed_ex_5 <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
-                             stress_type = "VaR",
-                             stress_parms = list(c=0.9,VaR_stress=1.2),
-                             Npaths=1e4, endtime=1, dt=2e-3)
-proc.time() - tm
+#------
 
-tm <- proc.time()
-mixed_ex_10 <- stressed_sim_mix(kappa = 10, jump_dist = gamma_mixed,
-                               stress_type = "VaR",
-                               stress_parms = list(c=0.9,VaR_stress=1.2),
-                               Npaths=1e4, endtime=1, dt=2e-3)
-proc.time() - tm
+# gamma_mixed <- new_RPS_dist_mix(sim_fun_a = function(x,parms) rgamma(x,shape=parms$alpha1,rate=parms$beta1),
+#   sim_fun_b = function(x,parms) rgamma(x,shape=parms$alpha2,rate=parms$beta2),
+#   dens_fun_a = function(x,parms) dgamma(x,shape=parms$alpha1,rate=parms$beta1),
+#   dens_fun_b = function(x,parms) dgamma(x,shape=parms$alpha2,rate=parms$beta2),
+#   char_fun = function(x,parms) parms$p * (1 - 1i*x/parms$beta1)^(-parms$alpha1) + 1 - parms$p,
+#   mean_fun = function(parms) parms$p*parms$alpha1/parms$beta1,
+#   parms = list(alpha1 = 2,beta1=1,alpha2=2,beta2=1,p = 0.5))
+#
+# tm <- proc.time()
+# mixed_ex <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
+#                              stress_type = "VaR",
+#                              stress_parms = list(c=0.9,VaR_stress=1.2),
+#                              Npaths=1e4, endtime=1, dt=1e-2)
+# proc.time() - tm
+
 
