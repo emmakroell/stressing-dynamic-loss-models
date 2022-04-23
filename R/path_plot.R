@@ -91,9 +91,9 @@ path_plot_biv <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
                   type = factor(type,levels = panel_order))
 
   # headings for facet plot
-  headings <- c('X1'= 'X1 * -paths',
-                'X2'= 'X2 * -paths',
-                'kappa'= 'stressed ~ kappa * -paths')
+  headings <- c('X1'= 'X[1] ~ paths',
+                'X2'= 'X[2] ~ paths',
+                'kappa'= 'kappa ~ paths')
 
   # enforce once scale
   max_X <- max(max(X_for_plot$value),max(X2_for_plot$value))

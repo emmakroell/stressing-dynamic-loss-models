@@ -57,12 +57,13 @@ plot_copula <- function(object,time){
 #'
 #' @param object RPS_model object
 #' @param time time at which to plot
+#' @param type char, one of "copula", "mixture"
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_copula_contour <- function(object,time){
+plot_copula_contour <- function(object,time,type="copula",show_true_ind=FALSE){
 
   time_index <- match(time,object$time_vec)
   u <- seq(0, 1, length.out = 25)
@@ -85,9 +86,11 @@ plot_copula_contour <- function(object,time){
 
 
   # baseline
-  baseline <- sim_baseline_biv(object)
-  X1 <- baseline$X1[time_index,]
-  X2 <- baseline$X2[time_index,]
+  if (type == "copula") baseline_sim <- sim_baseline_biv(object)
+  else if (type == "mixture") baseline_sim <- sim_baseline_mixture(object)
+
+  X1 <- baseline_sim$X1[time_index,]
+  X2 <- baseline_sim$X2[time_index,]
   draws <- cbind(X1,X2)
   ec <- copula::C.n(grid, X = draws)
   # contourplot2(cbind(as.matrix(grid),ec))
@@ -99,15 +102,19 @@ plot_copula_contour <- function(object,time){
     ggplot2::geom_contour_filled() +
     ggplot2::theme_minimal()
 
-  xy <- NULL
-  for (constant in seq(0.1,0.9,by=0.1)){
-    xy <- rbind(xy, dplyr::as_tibble(list(x = seq(0,1,0.01),
-                                   y = sapply(seq(0,1,0.01),
-                                              function(x) min(constant/x,1)),
-                                   constant = constant)))
+
+  if (show_true_ind == TRUE){
+    xy <- NULL
+    for (constant in seq(0.1,0.9,by=0.1)){
+      xy <- rbind(xy, dplyr::as_tibble(list(x = seq(0,1,0.01),
+                                            y = sapply(seq(0,1,0.01),
+                                                       function(x) min(constant/x,1)),
+                                            constant = constant)))
+    }
+    xy <- dplyr::mutate(xy,dplyr::across(3,as.numeric),
+                        y = ifelse(y==1,NA,y))
   }
-  xy <- dplyr::mutate(xy,dplyr::across(3,as.numeric),
-               y = ifelse(y==1,NA,y))
+
 
   # combined plot
   data <- rbind(res_P,res_Q)
@@ -115,8 +122,13 @@ plot_copula_contour <- function(object,time){
     ggplot2::ggplot() +
     ggplot2::geom_contour(ggplot2::aes(x,y,z=z,colour=measure), lwd=1) +
     ggplot2::theme_minimal() +
-    ggplot2::geom_line(data = xy, ggplot2::aes(x,y,group=constant), lty = 2)  +
+    # ggplot2::geom_line(data = xy, ggplot2::aes(x,y,group=constant), lty = 2)  +
     ggplot2::scale_colour_manual(values=c("#00BFC4","#F8766D"))
+
+  if (show_true_ind == TRUE) {
+    plot <- plot +
+      ggplot2::geom_line(data = xy, ggplot2::aes(x,y,group=constant), lty = 2)
+  }
 
   return(list(data = data,
               plot = plot))
@@ -141,9 +153,11 @@ plot_copula_dens_contour <- function(object,time){
   u1 <- copula::pobs(cbind(X1,X2))
   kde.fit1 <- kdecopula::kdecop(u1)
   plot(kde.fit1)
-  graphics::contour(kde.fit1,margins="unif",levels = c(0.1,0.5,1.5,2,3),
-                    col="#F8766D",lwd=2,cex.lab=1.5,cex.axis=1.5,
-                    labcex=1.1,vfont=c("sans serif", "bold"))
+  par(mar=c(5,5,4,1)+.1)
+  graphics::contour(kde.fit1,margins="unif",levels = c(0.1,0.25,0.5,1,1.5,2,3,4),
+                    col="#F8766D",lwd=3,cex.lab=1.5,cex.axis=1.5,
+                    labcex=1.1,vfont=c("sans serif", "bold"),
+                    xlab=expression(X[1]),ylab=expression(X[2]))
 
   # baseline
   baseline <- sim_baseline_biv(object)
@@ -152,12 +166,13 @@ plot_copula_dens_contour <- function(object,time){
   u2 <- copula::pobs(cbind(X1,X2))
   kde.fit2 <- kdecopula::kdecop(u2)
   plot(kde.fit2)
-  graphics::contour(kde.fit2,margins="unif",levels = c(0.1,0.5,1.5,2,3),
-                    col="#00BFC4",add=TRUE,lwd=2,
+  graphics::contour(kde.fit2,margins="unif",levels = c(0.1,0.25,0.5,1,1.5,2,3,4),
+                    col="#00BFC4",add=TRUE,lwd=3,
                     labcex=1.1,vfont=c("sans serif", "bold"))
   # add legend
   graphics::legend("bottomright", legend = c("Q", "P"),
-         col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.2)
+         col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.1)
+  par(mar=c(5,4,4,2)+.1)
 
 }
 

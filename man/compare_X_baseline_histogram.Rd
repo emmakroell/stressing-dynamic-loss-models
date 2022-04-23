@@ -4,7 +4,7 @@
 \alias{compare_X_baseline_histogram}
 \title{creates two-panel plot of histograms}
 \usage{
-compare_X_baseline_histogram(object, time)
+compare_X_baseline_histogram(object, time, type)
 }
 \arguments{
 \item{object}{RPS_model object}

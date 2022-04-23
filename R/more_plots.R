@@ -15,7 +15,8 @@
 #' @return
 #' @export
 #'
-plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=1e4){
+plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
+                             stress_parms,N_out=1e4,xmax=9){
 
   plot_x <- seq(0,12,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
@@ -76,7 +77,7 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parm
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,11))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
 
   plot_y2 <- dat %>%
     dplyr::filter(dim == 2) %>%
@@ -89,7 +90,7 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parm
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,11))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
 
   return(list(plot_data = dat,
               plot_y1=plot_y1,
@@ -148,7 +149,7 @@ plot_X_point_marginal <- function(object,time){
 #' @return
 #' @export
 #'
-compare_X_baseline_histogram <- function(object,time,type){
+compare_X_baseline_histogram <- function(object,time,type,xmax=20){
 
   time_index <- match(time,object$time_vec)
 
@@ -175,7 +176,7 @@ compare_X_baseline_histogram <- function(object,time,type){
                         labeller = ggplot2::as_labeller(plot_labels,ggplot2::label_parsed)) +
     ggplot2::theme_bw(base_size = 14) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlim(c(0,20)) +
+    ggplot2::xlim(c(0,xmax)) +
     ggplot2::theme(strip.text.y = ggplot2::element_text(angle = 0))
 }
 

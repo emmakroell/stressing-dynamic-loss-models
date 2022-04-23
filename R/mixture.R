@@ -529,18 +529,18 @@ plot_copula_dens_contour_mixture <- function(object,time){
 
 }
 
-
-baseline_ex <- sim_baseline_mixture(mixed_ex3)
-ks.test(baseline_ex$X2[501,],mixed_ex3$paths$X2[501,])
-pvec <- rep(NA,length(mixed_ex3$time_vec) )
-for (i in 1:length(mixed_ex3$time_vec)){
-  pvec[i] <- ks.test(baseline_ex$X2[i,],mixed_ex3$paths$X2[i,])$p.value
-}
-plot(mixed_ex2$time_vec,pvec)
-
-time <- mixed_ex3$time_vec
-as_tibble(cbind(time,pvec)) %>% ggplot(aes(time,pvec)) + geom_point() +
-  geom_hline(yintercept = 0.05)
+#
+# baseline_ex <- sim_baseline_mixture(mixed_ex3)
+# ks.test(baseline_ex$X2[501,],mixed_ex3$paths$X2[501,])
+# pvec <- rep(NA,length(mixed_ex3$time_vec) )
+# for (i in 1:length(mixed_ex3$time_vec)){
+#   pvec[i] <- ks.test(baseline_ex$X2[i,],mixed_ex3$paths$X2[i,])$p.value
+# }
+# plot(mixed_ex2$time_vec,pvec)
+#
+# time <- mixed_ex3$time_vec
+# as_tibble(cbind(time,pvec)) %>% ggplot(aes(time,pvec)) + geom_point() +
+#   geom_hline(yintercept = 0.05)
 #
 # baseline_ex <- sim_baseline_mixture(mixed_ex_b)
 # ks.test(baseline_ex$X2[101,],mixed_ex_b$paths$X2[101,])
@@ -580,21 +580,21 @@ as_tibble(cbind(time,pvec)) %>% ggplot(aes(time,pvec)) + geom_point() +
 #   char_fun = function(x,parms) parms$p * (1 - 1i*x/parms$beta1)^(-parms$alpha1) + 1 - parms$p,
 #   mean_fun = function(parms) parms$p*parms$alpha1/parms$beta1,
 #   parms = list(alpha1 = 2,beta1=1,alpha2=2,beta2=1,p = 0.5))
+# #
+# tm <- proc.time()
+# mixed_ex <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
+#                              stress_type = "VaR",
+#                              stress_parms = list(c=0.9,VaR_stress=1.15),
+#                              Npaths=1e4, endtime=1, dt=2e-2)
+# proc.time() - tm
 #
-tm <- proc.time()
-mixed_ex <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
-                             stress_type = "VaR",
-                             stress_parms = list(c=0.9,VaR_stress=1.15),
-                             Npaths=1e4, endtime=1, dt=2e-2)
-proc.time() - tm
-
-
-tm <- proc.time()
-mixed_ex3 <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
-                              stress_type = "VaR",
-                              stress_parms = list(c=0.9,VaR_stress=1.15),
-                              Npaths=1e4, endtime=1, dt=2e-3)
-proc.time() - tm
+#
+# tm <- proc.time()
+# mixed_ex3 <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
+#                               stress_type = "VaR",
+#                               stress_parms = list(c=0.9,VaR_stress=1.15),
+#                               Npaths=1e4, endtime=1, dt=2e-3)
+# proc.time() - tm
 #
 # tm <- proc.time()
 # mixed_ex <- stressed_sim_mix(kappa = 5, jump_dist = gamma_mixed,
