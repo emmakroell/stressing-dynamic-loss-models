@@ -13,7 +13,7 @@
 #'
 #' @return RPS_model object
 #' @export
-stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
+stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
                          stress_parms = list(c=c,q=q,s=s,VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress),
                          Npaths=1e4,endtime=1, dt=1e-2, interpolate = FALSE){
@@ -95,10 +95,10 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
           G_Q_draw2 <- approx(x=x1_seq,y=G_grid2[i-1,],xout=X1[i-1,])$y
         } else {
           # compute directly
-          distorted <- sim_G_kappa(t=times[i], x=X1[i-1,], eta=eta,
-                                   kappa=kappa, stress_type=stress_type,
-                                   stress_parms=stress_parms,
-                                   dist=jump_dist, Draws=Draws)
+          distorted <- sim_G_kappa_biv(t=times[i], x=X1[i-1,], eta=eta,
+                                       kappa=kappa, stress_type=stress_type,
+                                       stress_parms=stress_parms,
+                                       dist=jump_dist, Draws=Draws)
           kappa_Q[i,] <- distorted$kappa_Q  # store kappa
           G_Q_draw1 <- distorted$G_Q_1
           G_Q_draw2 <- distorted$G_Q_2
@@ -153,7 +153,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 #' 2) a vector of length length(x) containing kappa^Q at each x
 #'
 #' @export
-sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
+sim_G_kappa_biv <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
                         Draws,N_out=1,delta_y=0.1,y_max=100,tol=1e-10) {
   with(c(dist,stress_parms), {
     # x is a vector
