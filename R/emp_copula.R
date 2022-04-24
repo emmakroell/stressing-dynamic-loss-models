@@ -22,12 +22,13 @@ emp_copula <- function(X1,X2){
 #'
 #' @param object RPS_model object
 #' @param time time at which to plot
+#' @param type string, one of "copula", "mixture"
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_copula <- function(object,time){
+plot_copula <- function(object,time,type="copula"){
   time_index <- match(time,object$time_vec)
 
   # stressed
@@ -37,7 +38,9 @@ plot_copula <- function(object,time){
     dplyr::mutate(type = "stressed")
 
   # baseline
-  baseline <- sim_baseline_biv(object)
+  if (type == "copula") baseline <- sim_baseline_biv(object)
+  else if (type == "mixture") baseline <- sim_baseline_mixture(object)
+
   X1 <- baseline$X1[time_index,]
   X2 <- baseline$X2[time_index,]
   baseline <- emp_copula(X1,X2) %>%
@@ -49,7 +52,6 @@ plot_copula <- function(object,time){
     ggplot2::geom_point(size=1,alpha=0.4) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none")
-    # ggplot2::scale_alpha_discrete(range=c(0.7,0.4))
 }
 
 
@@ -57,7 +59,7 @@ plot_copula <- function(object,time){
 #'
 #' @param object RPS_model object
 #' @param time time at which to plot
-#' @param type char, one of "copula", "mixture"
+#' @param type string, one of "copula", "mixture"
 #'
 #' @return
 #' @export
@@ -153,7 +155,7 @@ plot_copula_dens_contour <- function(object,time){
   u1 <- copula::pobs(cbind(X1,X2))
   kde.fit1 <- kdecopula::kdecop(u1)
   plot(kde.fit1)
-  par(mar=c(5,5,4,1)+.1)
+  graphics::par(mar=c(5,5,4,1)+.1)
   graphics::contour(kde.fit1,margins="unif",levels = c(0.1,0.25,0.5,1,1.5,2,3,4),
                     col="#F8766D",lwd=3,cex.lab=1.5,cex.axis=1.5,
                     labcex=1.1,vfont=c("sans serif", "bold"),
@@ -172,7 +174,7 @@ plot_copula_dens_contour <- function(object,time){
   # add legend
   graphics::legend("bottomright", legend = c("Q", "P"),
          col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.1)
-  par(mar=c(5,4,4,2)+.1)
+  graphics::par(mar=c(5,4,4,2)+.1)
 
 }
 

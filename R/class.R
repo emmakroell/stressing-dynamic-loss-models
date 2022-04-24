@@ -12,7 +12,7 @@
 #' @export
 #'
 new_RPS_model <- function(jump_dist, kappa, stress_type, stress_parms,
-                          paths, time_vec, kappa_Q, jumps){
+                          paths, time_vec, intensity){
 
   stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
 
@@ -22,8 +22,7 @@ new_RPS_model <- function(jump_dist, kappa, stress_type, stress_parms,
                 stress_parms = stress_parms, # list of stress parameters corresponding to stress type
                 paths = paths,
                 time_vec = time_vec,
-                kappa_Q = kappa_Q,
-                jumps = jumps
+                intensity = intensity
   )
   ## Name of the class
   attr(model, "class") <- "RPS_model"
@@ -115,3 +114,28 @@ is.RPS_dist <- function(object) inherits(object, "RPS_dist")
 mean.RPS_dist <- function(object) {
   with(object, mean_fun(parms))
 }
+
+
+## MIXTURE
+# Mixture model code
+new_RPS_dist_mix <- function(sim_fun_a, sim_fun_b, dens_fun_a, dens_fun_b,
+                             char_fun, mean_fun,parms) {
+
+  model <- list(sim_fun_a = sim_fun_a,
+                sim_fun_b = sim_fun_b,
+                dens_fun_a = dens_fun_a,
+                dens_fun_b = dens_fun_b,
+                char_fun = char_fun,
+                mean_fun = mean_fun,
+                parms = parms
+  )
+  ## Name of the class
+  attr(model, "class") <- "RPS_dist_mixture"
+  return(model)
+}
+# need to include p (weight) in parms
+
+mean.RPS_dist_mixture <- function(object) {
+  with(object, mean_fun(parms))
+}
+

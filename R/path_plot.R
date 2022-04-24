@@ -12,7 +12,7 @@
 #' @return
 #' @export
 #'
-path_plot_biv <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
+plot_paths_biv <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
                       indices = "random") {
   # recover time
   time <- object$time_vec
@@ -69,7 +69,13 @@ path_plot_biv <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     dplyr::mutate(quantile = as.factor(quantile),type = "X2")
 
   # kappa
-  kappa <- as.data.frame(object$kappa_Q)
+  # extract kappa from model object (method of extraction depends on
+  # whether object is mixture (2 objects in intensity) or not (only 1))
+  if (length(object$intensity) == 2) {
+    kappa <- as.data.frame(object$intensity$kappa_Q)
+  } else {
+      kappa <- as.data.frame(object$intensity)
+  }
   colnames(kappa) <- seq(1,dim(kappa)[2],1)
 
   kappa_for_plot <- dplyr::as_tibble(cbind(kappa[2:dim(kappa)[1],indices],

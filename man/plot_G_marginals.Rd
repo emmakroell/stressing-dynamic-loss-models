@@ -11,7 +11,8 @@ plot_G_marginals(
   jump_dist,
   stress_type,
   stress_parms,
-  N_out = 10000
+  N_out = 10000,
+  xmax = 9
 )
 }
 \arguments{

@@ -4,14 +4,14 @@
 \alias{plot_copula_contour}
 \title{Plot empirical copula contour plot under P and Q}
 \usage{
-plot_copula_contour(object, time, type = "copula")
+plot_copula_contour(object, time, type = "copula", show_true_ind = FALSE)
 }
 \arguments{
 \item{object}{RPS_model object}
 
 \item{time}{time at which to plot}
 
-\item{type}{char, one of "copula", "mixture"}
+\item{type}{string, one of "copula", "mixture"}
 }
 \value{
 

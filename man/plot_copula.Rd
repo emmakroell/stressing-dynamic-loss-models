@@ -4,12 +4,14 @@
 \alias{plot_copula}
 \title{Plot empirical copula under P and Q}
 \usage{
-plot_copula(object, time)
+plot_copula(object, time, type = "copula")
 }
 \arguments{
 \item{object}{RPS_model object}
 
 \item{time}{time at which to plot}
+
+\item{type}{string, one of "copula", "mixture"}
 }
 \value{
 
