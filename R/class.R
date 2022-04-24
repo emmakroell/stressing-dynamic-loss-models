@@ -51,7 +51,7 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 #' @return
 #' @export
 #'
-new_RPS_dist <- function(copula, margins, sim_fun, dens_fun,
+new_RPS_dist_biv <- function(copula, margins, sim_fun, dens_fun,
                          char_fun, mean_fun, parms) {
   # copula <- copula(param = NULL, dim=2) #copula(0.5,dim=2) #for normal FIX
   biv_dist = copula::mvdc(copula=copula,
@@ -69,7 +69,7 @@ new_RPS_dist <- function(copula, margins, sim_fun, dens_fun,
                 parms = parms
   )
   ## Name of the class
-  attr(model, "class") <- "RPS_dist"
+  attr(model, "class") <- "RPS_dist_biv"
   return(model)
 }
 
@@ -94,7 +94,7 @@ new_RPS_dist <- function(copula, margins, sim_fun, dens_fun,
 #' @return Boolean
 #' @export
 #'
-is.RPS_dist <- function(object) inherits(object, "RPS_dist")
+is.RPS_dist_biv<- function(object) inherits(object, "RPS_dist_biv")
 
 #' Method for RPS_dist for mean()
 #'
@@ -111,7 +111,7 @@ is.RPS_dist <- function(object) inherits(object, "RPS_dist")
 #'              mean_fun = function(parms) parms$alpha/parms$beta,
 #'              parms = list(alpha = 2, beta=1))
 #'
-mean.RPS_dist <- function(object) {
+mean.RPS_dist_biv<- function(object) {
   with(object, mean_fun(parms))
 }
 
