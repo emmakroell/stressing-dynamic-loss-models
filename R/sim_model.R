@@ -86,7 +86,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       times <- seq(0,endtime,by=dt)
 
       for (i in 2:Nsteps){
-        U <- runif(Npaths)  # generate Npaths independent unif[0,1]
+        U <- stats::runif(Npaths)  # generate Npaths independent unif[0,1]
 
         if (interpolate == TRUE){
           # compute kappa.Q and draw from G.Q, using interpolation
@@ -211,7 +211,7 @@ sim_baseline <- function(object){
       X[1,] <- rep(0,Npaths)
 
       for (i in 2:Nsteps){
-        U <- runif(Npaths)
+        U <- stats::runif(Npaths)
         dt <- time_vec[i] - time_vec[i-1]
         X[i,] <- X[i-1,] + sample(Draws,Npaths,replace=TRUE) * as.integer(U < (1 - exp(-kappa * dt)))
       }
@@ -238,7 +238,7 @@ sim_baseline_biv <- function(object){
       X2[1,] <- rep(0,Npaths)
 
       for (i in 2:Nsteps){
-        U <- runif(Npaths)
+        U <- stats::runif(Npaths)
         dt <- time_vec[i] - time_vec[i-1]
         X1[i,] <- X1[i-1,] + sample(Draws[,1],Npaths,replace=TRUE) *
           as.integer(U < (1 - exp(-kappa * dt)))
@@ -347,7 +347,7 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
                                      stress_parms=stress_parms,p=parms$p,
                                      dist=jump_dist,Draws_a=Draws_a,
                                      Draws_b=Draws_b)
-        U <- runif(Npaths)  # generate Npaths independent unif[0,1]
+        U <- stats::runif(Npaths)  # generate Npaths independent unif[0,1]
 
         # compute kappa.Q and draw from G.Q, using interpolation
         kappa_Q[i,] <- distorted$kappa_Q  # store kappa
@@ -441,7 +441,7 @@ sim_G_kappa_mix <- function(t,x,eta,kappa,stress_type,stress_parms,dist,p,
       # new weight between distributions
       p_Q[j] <- p * h_integral_a / kappa_Q[j]
       # draw from G.Q
-      u <- rbinom(1,size=1,prob=p_Q[j])
+      u <- stats::rbinom(1,size=1,prob=p_Q[j])
       if (u == 1) weights <- approx(x=y,y=h[j,],xout=Draws_a)$y
       else weights <- approx(x=y,y=h[j,],xout=Draws_b)$y
       weights <- weights / kappa_Q[j]
@@ -491,10 +491,10 @@ sim_baseline_mixture <- function(object=NULL,jump_dist=NULL,
     X2[1,] <- rep(0,Npaths)
 
     for (i in 2:Nsteps){
-      u <- rbinom(Npaths,size=1,prob=jump_dist$parms$p)
+      u <- stats::rbinom(Npaths,size=1,prob=jump_dist$parms$p)
       G_1 <- u * sample(Draws_a,Npaths,replace = TRUE)
       G_2 <- (1-u) * sample(Draws_b,Npaths,replace = TRUE)
-      U <- runif(Npaths)
+      U <- stats::runif(Npaths)
       dt <- time_vec[i] - time_vec[i-1]
       X1[i,] <- X1[i-1,] + G_1 * as.integer(U < (1 - exp(-kappa * dt)))
       X2[i,] <- X2[i-1,] + G_2 * as.integer(U < (1 - exp(-kappa * dt)))

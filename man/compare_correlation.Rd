@@ -4,7 +4,7 @@
 \alias{compare_correlation}
 \title{Create plot comparing pathwise correlation under P and Q}
 \usage{
-compare_correlation(object, nsteps, method, copula = FALSE)
+compare_correlation(object, nsteps, method, type = "copula")
 }
 \arguments{
 \item{object}{RPS_model object}
@@ -12,6 +12,8 @@ compare_correlation(object, nsteps, method, copula = FALSE)
 \item{nsteps}{number of steps at which to evaluate the correlation}
 
 \item{method}{one of "pearson", "spearman", "kendall"}
+
+\item{type}{string, one of "copula", "mixture"}
 }
 \value{
 

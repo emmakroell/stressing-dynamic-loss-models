@@ -28,20 +28,14 @@ corr_CI <- function(r,n,method,alpha=0.05){
 #' @return
 #' @export
 #'
-pathwise_corr <- function(X1,X2,time_seq,method,copula=FALSE){
+pathwise_corr <- function(X1,X2,time_seq,method){
   estimate <- rep(NA, length(time_seq))
   lwr <- rep(NA, length(time_seq))
   upr <- rep(NA, length(time_seq))
 
   for (i in 1:length(time_seq)){
-    if (copula == TRUE) {
-      cop <- emp_copula(X1[time_seq[i],],X2[time_seq[i],])
-      corr_temp <- stats::cor.test(cop$U1,cop$U2,method=method)
-    } else{
-      corr_temp <- stats::cor.test(X1[time_seq[i],],
-                                   X2[time_seq[i],],
-                                   method=method)
-    }
+    corr_temp <- stats::cor.test(X1[time_seq[i],],
+                                 X2[time_seq[i],],method=method)
     estimate[i] <- corr_temp$estimate
 
     if (method == "pearson"){
@@ -69,21 +63,23 @@ pathwise_corr <- function(X1,X2,time_seq,method,copula=FALSE){
 #' @param object RPS_model object
 #' @param nsteps number of steps at which to evaluate the correlation
 #' @param method one of "pearson", "spearman", "kendall"
+#' @param type string, one of "copula", "mixture"
 #'
 #' @return
 #' @export
 #'
-compare_correlation <- function(object,nsteps,method,copula=FALSE){
+compare_correlation <- function(object,nsteps,method,type="copula"){
   time_seq <- seq(1,length(object$time_vec),length.out=nsteps)
-  baseline_sim <- sim_baseline_biv(object)
+  if (type == "copula") baseline_sim <- sim_baseline_biv(object)
+  else if (type == "mixture") baseline_sim <- sim_baseline_mixture(object)
   X1_P <- baseline_sim$X1
   X2_P <- baseline_sim$X2
 
   cor1 <- cbind(pathwise_corr(object$paths$X1,object$paths$X2,
-                              time_seq,method=method,copula=copula),
+                              time_seq,method=method),
                 time = object$time_vec[time_seq],
                 measure="stressed")
-  cor2 <- cbind(pathwise_corr(X1_P,X2_P,time_seq,method=method,copula=copula),
+  cor2 <- cbind(pathwise_corr(X1_P,X2_P,time_seq,method=method),
                 time = object$time_vec[time_seq],
                 measure="original")
 
