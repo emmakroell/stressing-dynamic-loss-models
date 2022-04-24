@@ -88,7 +88,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     beepr::beep()
     new_RPS_model(jump_dist = jump_dist, kappa = kappa,
                   stress_type = stress_type, stress_parms = stress_parms,
-                  time_vec = times, paths = X, kappa_Q = kappa_Q)
+                  time_vec = times, paths = X, intensity = kappa_Q)
   })
 }
 

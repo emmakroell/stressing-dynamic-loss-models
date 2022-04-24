@@ -39,6 +39,64 @@ new_RPS_model <- function(jump_dist, kappa, stress_type, stress_parms,
 is.RPS_model <- function(object) inherits(object, "RPS_model")
 
 
+# UNIVARIATE
+#' Defines RPS_dist class, class giving a distribution
+#'
+#' @param dist_fun function of x and parms, returns distribution function
+#' @param dens_fun function of x and parms, returns density function
+#' @param sim_fun function of x and parms, returns random draw generation function
+#' @param char_fun function of x and parms, returns characteristic function
+#' @param mean_fun function of parms, returns mean
+#' @param parms list, parameters for distribution
+#'
+#' @return
+#' @export
+#'
+new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun, parms) {
+
+  model <- list(dist_fun = dist_fun,
+                dens_fun = dens_fun,
+                sim_fun = sim_fun,
+                char_fun = char_fun,
+                mean_fun = mean_fun,
+                parms = parms
+  )
+  ## Name of the class
+  attr(model, "class") <- "RPS_dist"
+  return(model)
+}
+
+#' Method for RPS_dist for is()
+#'
+#' @param object RPS_dist
+#'
+#' @return Boolean
+#' @export
+#'
+is.RPS_dist <- function(object) inherits(object, "RPS_dist")
+
+#' Method for RPS_dist for mean()
+#'
+#' @param object RPS_dist
+#'
+#' @return mean of distribution
+#' @export
+#'
+#' @example
+#' new_RPS_dist(dist_fun = function(x,parms) pgamma(x,shape=parms$alpha,rate=parms$beta),
+#'              dens_fun = function(x,parms) dgamma(x,shape=parms$alpha,rate=parms$beta),
+#'              sim_fun = function(x,parms) rgamma(x,shape=parms$alpha,rate=parms$beta),
+#'              char_fun = function(x,parms) (1 - 1i*x/parms$beta)^(-parms$alpha),
+#'              mean_fun = function(parms) parms$alpha/parms$beta,
+#'              parms = list(alpha = 2, beta=1))
+#'
+mean.RPS_dist <- function(object) {
+  with(object, mean_fun(parms))
+}
+
+
+# BIVARIATE
+
 #' Defines RPS_dist class, class giving a distribution
 #'
 #' @param dist_fun function of x and parms, returns distribution function

@@ -67,7 +67,7 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     dplyr::mutate(quantile = as.factor(quantile),type = "original")
 
   # kappa
-  kappa <- as.data.frame(object$kappa_Q)
+  kappa <- as.data.frame(object$intensity)
   colnames(kappa) <- seq(1,dim(kappa)[2],1)
 
   kappa_for_plot <- dplyr::as_tibble(cbind(kappa[2:dim(kappa)[1],indices],
