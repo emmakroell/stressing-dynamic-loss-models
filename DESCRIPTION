@@ -17,7 +17,9 @@ Imports:
     tidyselect,
     tidyr,
     withr,
-    plotly
+    plotly,
+    copula,
+    kdecopula
 Suggests: 
     rmarkdown,
     knitr

@@ -11,7 +11,7 @@ new_RPS_model(
   stress_parms,
   paths,
   time_vec,
-  kappa_Q
+  intensity
 )
 }
 \arguments{
