@@ -12,7 +12,8 @@ stressed_sim(
     CVaR_stress),
   Npaths = 10000,
   endtime = 1,
-  dt = 0.01
+  dt = 0.01,
+  interpolate = FALSE
 )
 }
 \arguments{

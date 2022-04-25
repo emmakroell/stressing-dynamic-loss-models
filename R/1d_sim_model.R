@@ -16,7 +16,7 @@
 stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                          stress_parms = list(c=c,q=q,s=s,VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress),
-                         Npaths=1e4,endtime=1, dt=1e-2){
+                         Npaths=1e4,endtime=1, dt=1e-2, interpolate = FALSE){
 
   # first, draw from the jump size distribution
   Ndraws <- 1e4
@@ -46,23 +46,26 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
-      # choose X max based on parameters:
-      x_max <- 5 * kappa * mean(jump_dist)
-      x_seq <- seq(0,x_max,by=1e-2)
-      len_x <- length(x_seq)
 
-      G_grid <- matrix(nrow = Nsteps, ncol = len_x)
-      kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
+      if (interpolate == TRUE) {
+        # choose X max based on parameters:
+        x_max <- 5 * kappa * mean(jump_dist)
+        x_seq <- seq(0,x_max,by=1e-2)
+        len_x <- length(x_seq)
+
+        G_grid <- matrix(nrow = Nsteps, ncol = len_x)
+        kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
 
 
-      # compute G and kappa at grid points
-      for (i in 1:Nsteps){
-        distorted <- sim_G_kappa(t=times[i],x=x_seq,eta=eta,kappa=kappa,
-                                 stress_type=stress_type,
-                                 stress_parms=stress_parms,
-                                 dist=jump_dist,Draws=Draws)
-        G_grid[i,] <- distorted$G_Q
-        kappa_grid[i,] <- distorted$kappa_Q
+        # compute G and kappa at grid points
+        for (i in 1:Nsteps){
+          distorted <- sim_G_kappa(t=times[i],x=x_seq,eta=eta,kappa=kappa,
+                                   stress_type=stress_type,
+                                   stress_parms=stress_parms,
+                                   dist=jump_dist,Draws=Draws)
+          G_grid[i,] <- distorted$G_Q
+          kappa_grid[i,] <- distorted$kappa_Q
+        }
       }
 
       # initialize
@@ -76,19 +79,32 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
         U <- runif(Npaths)  # generate Npaths independent unif[0,1]
 
         # compute kappa.Q and draw from G.Q, using interpolation
-        kappa_Q[i,] <- approx(x=x_seq,y=kappa_grid[i-1,],xout=X[i-1,])$y  # store kappa
-        G_Q_draw <- approx(x=x_seq,y=G_grid[i-1,],xout=X[i-1,])$y
+        if (interpolate == TRUE) {
+          kappa_Q[i,] <- approx(x=x_seq,y=kappa_grid[i-1,],xout=X[i-1,])$y  # store kappa
+          G_Q_draw <- approx(x=x_seq,y=G_grid[i-1,],xout=X[i-1,])$y
+        } else {
+          distorted <- sim_G_kappa(t=times[i],x=X[i-1,],eta=eta,kappa=kappa,
+                                   stress_type=stress_type,
+                                   stress_parms=stress_parms,
+                                   dist=jump_dist,Draws=Draws)
+          kappa_Q[i,] <- distorted$kappa_Q
+          G_Q_draw <- distorted$G_Q
+        }
+
         # simulate forward:
         X[i,] <- X[i-1,] + G_Q_draw * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
 
-        # if X passed the grid max, return an error:
-        if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
+        if (interpolate == TRUE){
+          # if X passed the grid max, return an error:
+          if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
+        }
       }
     })
     beepr::beep()
-    new_RPS_model(jump_dist = jump_dist, kappa = kappa,
-                  stress_type = stress_type, stress_parms = stress_parms,
-                  time_vec = times, paths = X, intensity = kappa_Q)
+    new_RPS_model(model_type = "univariate", jump_dist = jump_dist,
+                  kappa = kappa, stress_type = stress_type,
+                  stress_parms = stress_parms, time_vec = times,
+                  paths = X, intensity = kappa_Q)
   })
 }
 

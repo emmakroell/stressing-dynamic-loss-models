@@ -5,6 +5,7 @@
 \title{Defines RPS_model class}
 \usage{
 new_RPS_model(
+  model_type,
   jump_dist,
   kappa,
   stress_type,
@@ -15,6 +16,9 @@ new_RPS_model(
 )
 }
 \arguments{
+\item{model_type}{string, one of "univariate", "bivariate_copula", or
+"bivariate_mixture"}
+
 \item{jump_dist}{RPS_dist object, contains jump size distribution}
 
 \item{kappa}{double, compound Poisson parameter}
@@ -27,7 +31,7 @@ new_RPS_model(
 
 \item{time_vec}{vector, times at which stressed model is evaluated}
 
-\item{kappa_Q}{matrix, paths of stressed processed intensity}
+\item{intensity}{matrix, paths of stressed processed intensity}
 }
 \value{
 

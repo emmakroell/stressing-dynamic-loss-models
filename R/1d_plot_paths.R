@@ -78,13 +78,13 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     dplyr::mutate(number = as.factor(number), type = "kappa")
 
   # order of panels:
-  panel_order <- c("original","kappa","stressed")
+  panel_order <- c("stressed","kappa","original")
 
 
   # horizontal lines for kappa^P and q
   lines <- dplyr::as_tibble(cbind(line=c(object$stress_parms$q,object$kappa,
                                          object$stress_parms$q),
-                                  type = c("original","kappa","stressed"))) %>%
+                                  type = c("stressed","kappa","original"))) %>%
     dplyr::mutate(line=as.numeric(line),
                   type = factor(type,levels = panel_order))
 
@@ -105,7 +105,7 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
   rbind(X_for_plot,X_baseline_for_plot,kappa_for_plot) %>%
     dplyr::mutate(type = factor(type,levels = panel_order)) %>%
     ggplot2::ggplot() +
-    ggplot2::geom_line(alpha=0.8,ggplot2::aes(x=time,y=value,colour=number),size=1) +
+    ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1) +
     ggplot2::geom_line(data=dplyr::mutate(rbind(X_quantiles,X_baseline_quantiles),
                                           type = factor(type,levels = panel_order)),
                        ggplot2::aes(x=time,y=value,group=quantile), size = 1.1) +

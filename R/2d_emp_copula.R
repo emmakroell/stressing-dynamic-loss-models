@@ -147,6 +147,11 @@ plot_copula_contour <- function(object,time,type="copula",show_true_ind=FALSE){
 #' @examples
 plot_copula_dens_contour <- function(object,time){
 
+  if (object$model_type != "bivariate_copula"){
+    stop(paste("Density contour plot method not defined for model type",
+               object$model_type))
+  }
+
   time_index <- match(time,object$time_vec)
 
   # stressed

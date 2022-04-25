@@ -6,17 +6,20 @@
 #' @param stress_parms list, parameters for stress
 #' @param paths matrix, paths of stressed model
 #' @param time_vec vector, times at which stressed model is evaluated
-#' @param kappa_Q matrix, paths of stressed processed intensity
+#' @param intensity matrix, paths of stressed processed intensity
+#' @param model_type string, one of "univariate", "bivariate_copula", or
+#'                   "bivariate_mixture"
 #'
 #' @return
 #' @export
 #'
-new_RPS_model <- function(jump_dist, kappa, stress_type, stress_parms,
-                          paths, time_vec, intensity){
+new_RPS_model <- function(model_type, jump_dist, kappa, stress_type,
+                          stress_parms, paths, time_vec, intensity){
 
   stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
 
-  model <- list(jump_dist = jump_dist,
+  model <- list(model_type = model_type,
+                jump_dist = jump_dist,
                 kappa = kappa,
                 stress_type = stress_type, # type of stress: VaR or VaR & CVaR
                 stress_parms = stress_parms, # list of stress parameters corresponding to stress type
