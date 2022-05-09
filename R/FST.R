@@ -20,7 +20,7 @@
 #' @return FST approximation of terminal_cond at x at time t
 #' @export
 #'
-FST <- function(x, t, dist, kappa, terminal_cond, grid_max, stress_time=1,
+FST <- function(x, t, dist, kappa, terminal_cond, grid_max, time_stress=1,
                 N=5e3, h = FALSE, y = NULL){
   with(dist, {
     # Real space
@@ -40,7 +40,7 @@ FST <- function(x, t, dist, kappa, terminal_cond, grid_max, stress_time=1,
 
     # FST method
     char_exp <- kappa * (char_fun(w,parms) - 1)
-    char_exp_factor <-  exp(char_exp * (stress_time - t))
+    char_exp_factor <-  exp(char_exp * (time_stress - t))
 
     # compute omega
     omega <- Re(fft(fft(f)*char_exp_factor, inverse = TRUE)/length(f))

@@ -12,21 +12,22 @@
 #' @param q dbl
 #' @param dist RPS_dist object
 #' @param grid_max int
-#' @param stress_time dbl
+#' @param time_stress dbl
 #' @param N int
 #'
 #' @return
 #' @export
 #'
-P_prob <- function(x,t,kappa,q,dist,grid_max=50,stress_time=1,N=8192){
+P_prob <- function(x,t,kappa,q,dist,grid_max=50,time_stress=1,N=8192){
   indic_func <- function(x) as.integer(x < q)
   FST(x=x, t=t, dist=dist, kappa = kappa,terminal_cond=indic_func,
-      grid_max=grid_max, stress_time=stress_time, N=N)
+      grid_max=grid_max, time_stress=time_stress, N=N)
 }
 
 
 #' computes VaR under the P measure using FST and stats::uniroot
 #'
+#' @param time dbl, time at which to compute VaR
 #' @param kappa dbl, compound Poisson parameter
 #' @param c dbl, level for VaR between 0 and 1
 #' @param dist RPS_dist object
@@ -38,7 +39,7 @@ compute_VaR <- function(time,kappa,c,dist){
   grid_max <- 5 * kappa * mean(dist)
   stats::uniroot(function(q) P_prob(x=0,t=0,kappa=kappa,q=q,
                                     dist=dist,grid_max=grid_max,
-                                    stress_time=time) - c,
+                                    time_stress=time) - c,
                  interval=c(0, 5*kappa*mean(dist)))$root
 }
 
@@ -47,7 +48,7 @@ compute_VaR <- function(time,kappa,c,dist){
 #'
 #' @param kappa double, compound Poisson parameter
 #' @param stress_parms list of parameters for stress; must contain:
-#' q: stressed VaR value, stress_time: time at which stress occurs
+#' q: stressed VaR value, time_stress: time at which stress occurs
 #' @param dist RPS_dist object, contains jump size distribution
 #'
 #' @return double, optimal eta for VaR stress
@@ -57,7 +58,7 @@ eta_VaR <- function(kappa,stress_parms,dist) {
   with(stress_parms,{
     grid_max <- 5 * kappa * mean(dist)
     p <- P_prob(x=0, t=0, kappa = kappa, q=q, dist=dist,
-                grid_max=grid_max, stress_time=stress_time)
+                grid_max=grid_max, time_stress=time_stress)
     eta <- log((1-c)/c * p/(1-p))
     return(eta)
   })
@@ -74,23 +75,24 @@ eta_VaR <- function(kappa,stress_parms,dist) {
 #' @param q double, stressed VaR value
 #' @param kappa double, compound Poisson parameter
 #' @param stress_parms list of parameters for stress; must contain:
-#' q: stressed VaR value, stress_time: time at which stress occurs
+#' q: stressed VaR value, time_stress: time at which stress occurs
 #' @param N int, number of points for FST method
 #'
 #' @return
 #' @export
 #'
+#'
 h_VaR <- function(x, y, t, dist, eta, kappa, stress_parms, N=8192) {
   with(stress_parms,{
-    if (t > stress_time) h <- 1
+    if (t > time_stress) h <- 1
     else{
       grid_max <- max(x) + max(y) + 50
       num <- 1 + (exp(-eta) - 1) * P_prob(x=x+y,t=t,kappa=kappa,q=q,
                                           dist=dist,grid_max=grid_max,
-                                          stress_time=stress_time,N=N)
+                                          time_stress=time_stress,N=N)
       denom <- 1 + (exp(-eta) - 1) * P_prob(x=x,t=t,kappa=kappa,q=q,
                                             dist=dist,grid_max=grid_max,
-                                            stress_time=stress_time,N=N)
+                                            time_stress=time_stress,N=N)
       h <- num / denom
     }
     return(h)
@@ -105,6 +107,7 @@ h_VaR <- function(x, y, t, dist, eta, kappa, stress_parms, N=8192) {
 
 #' Compute CVaR under the P measure
 #'
+#' @param time dbl, time at which to compute CVaR
 #' @param kappa dbl, compound Poisson parameter
 #' @param q dbl, stressed VaR value
 #' @param c dbl, VaR level, between 0 and 1
@@ -113,11 +116,12 @@ h_VaR <- function(x, y, t, dist, eta, kappa, stress_parms, N=8192) {
 #' @return
 #' @export
 #'
-compute_CVaR <- function(kappa,q,c,dist) {
+compute_CVaR <- function(time,kappa,q,c,dist) {
   terminal_eqn <- function(x) (x - q) * as.integer(x > q)
   grid_max <- 5 * kappa * mean(dist)
   expectation <- FST(x=0, t=0, dist=dist, kappa = kappa,
-                     terminal_cond=terminal_eqn, grid_max=grid_max)
+                     terminal_cond=terminal_eqn,
+                     grid_max=grid_max, time_stress=time)
   1/(1-c) * expectation + q
 }
 
@@ -125,23 +129,23 @@ compute_CVaR <- function(kappa,q,c,dist) {
 #' Computes P-expectation of e^(-eta2 * (x-q)) indicator(x >= q)
 #' helper function for eta_CVaR and h_CVaR
 #'
-#' @param x
-#' @param t
+#' @param x dbl
+#' @param t dbl
 #' @param kappa dbl, compound Poisson parameter
 #' @param q dbl, stressed VaR value
 #' @param eta2 dbl
 #' @param dist RPS_dist object
-#' @param grid_max
-#' @param endtime
-#' @param N
+#' @param grid_max int
+#' @param time_stress dbl
+#' @param N int
 #'
 #' @return
 #' @export
 #'
-P_expectation <- function(x,t,kappa,q,eta2,dist,grid_max,endtime=1,N=8192){
+P_expectation <- function(x,t,kappa,q,eta2,dist,grid_max,time_stress=1,N=8192){
   terminal_eqn <- function(x) exp(-eta2 * (x - q)) * as.integer(x >= q)
   FST(x=x, t=t, dist=dist, kappa=kappa, terminal_cond=terminal_eqn,
-      grid_max=grid_max, endtime=endtime, N=N)
+      grid_max=grid_max, time_stress=time_stress, N=N)
 }
 
 
@@ -152,14 +156,14 @@ P_expectation <- function(x,t,kappa,q,eta2,dist,grid_max,endtime=1,N=8192){
 #' @param q dbl, stressed VaR value
 #' @param s dbl, stressed CVaR value
 #' @param kappa dbl, compound Poisson parameter
-#' @param grid_max
-#' @param endtime
-#' @param N
+#' @param grid_max int
+#' @param time_stress dbl
+#' @param N nt
 #'
 #' @return
 #' @export
 #'
-eta2_eq <- function(eta, dist, q, s, kappa, grid_max, endtime=1, N=8192) {
+eta2_eq <- function(eta, dist, q, s, kappa, grid_max, time_stress=1, N=8192) {
   # scale variables to avoid hitting numerical max
   terminal_eqn <- function(x) {
     q_scaled <- q / grid_max
@@ -169,7 +173,7 @@ eta2_eq <- function(eta, dist, q, s, kappa, grid_max, endtime=1, N=8192) {
       as.integer(x_scaled >= q_scaled)
   }
   FST(x=0, t=0,  dist=dist, kappa = kappa, terminal_cond=terminal_eqn,
-      grid_max=grid_max, endtime=endtime, N=N)
+      grid_max=grid_max, time_stress=time_stress, N=N)
 }
 
 
@@ -179,24 +183,26 @@ eta2_eq <- function(eta, dist, q, s, kappa, grid_max, endtime=1, N=8192) {
 #' @param stress_parms list, c = level of VaR & CVaR, q = stressed value of VaR,
 #' s = stressed value of CVaR
 #' @param dist RPS_dist object
-#' @param endtime dbl
+#' @param time_stress dbl
 #' @param N int
 #'
 #' @return
 #' @export
 #'
-eta_CVaR <- function(kappa,stress_parms,dist,endtime=1,N=8192) {
+eta_CVaR <- function(kappa,stress_parms,dist,time_stress=1,N=8192) {
   with(stress_parms,{
     grid_max <- 5 * kappa * mean(dist)
     # compute eta 2 using helper function and uniroot
-    eta2 <- uniroot(function(eta) eta2_eq(eta, dist=dist, q=q, s=s,kappa=kappa,
-                                          grid_max= grid_max,endtime=endtime,N=N),
+    eta2 <- uniroot(function(eta) eta2_eq(eta, dist=dist, q=q, s=s,
+                                          kappa=kappa, grid_max= grid_max,
+                                          time_stress=time_stress, N=N),
                     interval = c(-5,5),tol=1e-10, extendInt = "yes")$root
     eta2 <- eta2 / grid_max
     # compute eta 1
-    p <- P_prob(x=0,t=0,kappa=kappa,q=q,dist=dist,grid_max=grid_max,endtime=endtime,N=N)
+    p <- P_prob(x=0,t=0,kappa=kappa,q=q,dist=dist,
+                grid_max=grid_max,time_stress=time_stress,N=N)
     expectation <- P_expectation(x=0,t=0,kappa=kappa,q=q,eta2=eta2,dist=dist,
-                                 grid_max=grid_max,endtime=endtime,N=N)
+                                 grid_max=grid_max,time_stress=time_stress,N=N)
     eta1 <- log((1-c)/c * p/expectation)
 
     # return eta1 and eta2
@@ -214,18 +220,32 @@ eta_CVaR <- function(kappa,stress_parms,dist,endtime=1,N=8192) {
 #' @param q dbl, stressed VaR value
 #' @param dist RPS_dist objecrt
 #' @param eta dbl
-#' @param endtime dbl
+#' @param stress_parms list of parameters for stress; must contain:
+#' q: stressed VaR value, time_stress: time at which stress occurs
 #' @param N int
 #'
 #' @return
 #' @export
 #'
-h_CVaR <- function(x,y,t,kappa,q,dist,eta,endtime=1,N=8192){
-  grid_max <- max(x) + max(y) + 30
-  num <- exp(-eta[1]) * P_prob(x+y,t,kappa,q,dist,grid_max,endtime,N) +
-    P_expectation(x+y,t,kappa,q,eta[2],dist,grid_max,endtime,N)
-  denom <- exp(-eta[1]) * P_prob(x,t,kappa,q,dist,grid_max,endtime,N) +
-    P_expectation(x,t,kappa,q,eta[2],dist,grid_max,endtime,N)
-  num / denom
+h_CVaR <- function(x,y,t,kappa,dist,eta,stress_parms,N=8192){
+  with(stress_parms,{
+    if (t > time_stress) h <- 1
+    else{
+      grid_max <- max(x) + max(y) + 30
+      num <- exp(-eta[1]) * P_prob(x=x+y,t=t,kappa=kappa,q=q,
+                                   dist=dist,grid_max=grid_max,
+                                   time_stress=time_stress,N=N) +
+        P_expectation(x=x+y,t=t,kappa=kappa,q=q,eta2=eta[2],dist=dist,
+                      grid_max=grid_max,time_stress=time_stress,N=N)
+      denom <- exp(-eta[1]) * P_prob(x=x,t=t,kappa=kappa,q=q,
+                                     dist=dist,grid_max=grid_max,
+                                     time_stress=time_stress,N=N) +
+        P_expectation(x=x,t=t,kappa=kappa,q=q,eta2=eta[2],dist=dist,
+                      grid_max=grid_max,time_stress=time_stress,N=N)
+      h <- num / denom
+      }
+    return(h)
+  })
 }
+
 

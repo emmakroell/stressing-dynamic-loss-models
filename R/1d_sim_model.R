@@ -7,7 +7,7 @@
 #' VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 #' CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 #' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
-#' stress_time: time at which stress occurs; if NULL, assumed to be end_time
+#' time_stress: time at which stress occurs; if NULL, assumed to be end_time
 #' @param Npaths integer, number of paths
 #' @param end_time float, when to end sim
 #' @param dt float, step size in time
@@ -18,7 +18,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                          stress_parms = list(c=c,q=q,s=s,
                                              VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress,
-                                             stress_time = stress_time),
+                                             time_stress = time_stress),
                          Npaths=1e4, end_time=1, dt=1e-2){
 
   # first, draw from the jump size distribution
@@ -29,21 +29,21 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
       Nsteps <- end_time / dt + 1   # number of steps to take
 
-      # if stress_time is empty, assume stress is at the end
-      if (is.null(stress_parms$stress_time)) {
+      # if time_stress is empty, assume stress is at the end
+      if (is.null(stress_parms$time_stress)) {
         cat("No stress time specified. Applying stress at terminal time. \n")
-        stress_parms$stress_time <- end_time
+        stress_parms$time_stress <- end_time
       }
-
 
       if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
         stress_parms$q <- stress_parms$VaR_stress *
-          compute_VaR(stress_parms$stress_time,kappa,stress_parms$c,jump_dist)
+          compute_VaR(stress_parms$time_stress,kappa,stress_parms$c,jump_dist)
       }
       if ((stress_type == "CVaR") & is.null(stress_parms$s) &
           !(is.null(stress_parms$CVaR_stress))){
         stress_parms$s <- stress_parms$CVaR_stress *
-          compute_CVaR(kappa=kappa,q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
+          compute_CVaR(stress_parms$time_stress,kappa=kappa,
+                       q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
         if (stress_parms$s < stress_parms$q) {
           stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
         }
@@ -131,7 +131,7 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
                       "VaR" = h_VaR(x=x,y=y[i],t=t,dist=dist,eta=eta,
                                     kappa=kappa,stress_parms=stress_parms),
                       "CVaR" = h_CVaR(x=x,y=y[i],t=t,dist=dist,eta=eta,
-                                      q=q,kappa=kappa,stress_time=stress_time))
+                                      kappa=kappa,stress_parms=stress_parms))
     }
 
     # initialize
