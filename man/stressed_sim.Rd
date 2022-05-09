@@ -9,11 +9,10 @@ stressed_sim(
   jump_dist,
   stress_type = "VaR",
   stress_parms = list(c = c, q = q, s = s, VaR_stress = VaR_stress, CVaR_stress =
-    CVaR_stress),
+    CVaR_stress, stress_time = stress_time),
   Npaths = 10000,
-  endtime = 1,
-  dt = 0.01,
-  interpolate = FALSE
+  end_time = 1,
+  dt = 0.01
 )
 }
 \arguments{
@@ -26,11 +25,12 @@ stressed_sim(
 \item{stress_parms}{list of parameters for stress
 VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
-VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
+VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
+stress_time: time at which stress occurs; if NULL, assumed to be end_time}
 
 \item{Npaths}{integer, number of paths}
 
-\item{endtime}{float, when to end sim}
+\item{end_time}{float, when to end sim}
 
 \item{dt}{float, step size in time}
 }

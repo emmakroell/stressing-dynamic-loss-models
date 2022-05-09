@@ -110,8 +110,16 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
   plot_x <- seq(0,xmax,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
 
+  # if stress_time is empty, assume stress is at the end
+  if (is.null(stress_parms$stress_time)) {
+    cat(paste("No stress time specified. Applying stress at time =",
+              tail(t_vec,1), "\n"))
+    stress_parms$stress_time <- tail(t_vec,1)
+  }
+
   if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-    stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+    stress_parms$q <- stress_parms$VaR_stress *
+      compute_VaR(stress_parms$stress_time,kappa,stress_parms$c,jump_dist)
   }
   if ((stress_type == "CVaR") & is.null(stress_parms$s) &
       !(is.null(stress_parms$CVaR_stress))){
@@ -121,6 +129,7 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
       stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
     }
   }
+
 
   eta <- switch(stress_type,
                 "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,

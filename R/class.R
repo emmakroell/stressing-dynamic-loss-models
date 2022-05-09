@@ -13,7 +13,7 @@
 #' @return
 #' @export
 #'
-new_RPS_model <- function(model_type, jump_dist, kappa, stress_type,
+new_RPS_model <- function(model_type, jump_dist, kappa, stress_type, eta,
                           stress_parms, paths, time_vec, intensity){
 
   stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
@@ -24,6 +24,7 @@ new_RPS_model <- function(model_type, jump_dist, kappa, stress_type,
                 stress_type = stress_type, # type of stress: VaR or VaR & CVaR
                 stress_parms = stress_parms, # list of stress parameters corresponding to stress type
                 paths = paths,
+                eta = eta,
                 time_vec = time_vec,
                 intensity = intensity
   )

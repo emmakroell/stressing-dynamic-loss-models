@@ -12,7 +12,7 @@
 #' @param kappa double, compound Poisson parameter
 #' @param terminal_cond double, end value
 #' @param grid_max double, max grid value for FST
-#' @param endtime double, end time
+#' @param stress_time double, end time
 #' @param N int, number of points in grid
 #' @param h Boolean, function returns fraction of FST at x+y/FST at x if TRUE
 #' @param y vector, optional argument for numerator if h = TRUE
@@ -20,8 +20,8 @@
 #' @return FST approximation of terminal_cond at x at time t
 #' @export
 #'
-FST <- function(x, t, dist, kappa, terminal_cond, grid_max, endtime=1, N=5e3,
-                h = FALSE, y = NULL){
+FST <- function(x, t, dist, kappa, terminal_cond, grid_max, stress_time=1,
+                N=5e3, h = FALSE, y = NULL){
   with(dist, {
     # Real space
     x_min <- 0
@@ -40,7 +40,7 @@ FST <- function(x, t, dist, kappa, terminal_cond, grid_max, endtime=1, N=5e3,
 
     # FST method
     char_exp <- kappa * (char_fun(w,parms) - 1)
-    char_exp_factor <-  exp(char_exp * (endtime-t))
+    char_exp_factor <-  exp(char_exp * (stress_time - t))
 
     # compute omega
     omega <- Re(fft(fft(f)*char_exp_factor, inverse = TRUE)/length(f))

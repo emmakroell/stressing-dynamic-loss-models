@@ -9,6 +9,7 @@ new_RPS_model(
   jump_dist,
   kappa,
   stress_type,
+  eta,
   stress_parms,
   paths,
   time_vec,

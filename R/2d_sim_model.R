@@ -125,7 +125,7 @@ stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
     new_RPS_model(model_type = "bivariate_copula", jump_dist = jump_dist,
                   kappa = kappa, stress_type = stress_type,
                   stress_parms = stress_parms, time_vec = times,
-                  paths = list(X1=X1, X2=X2), intensity = kappa_Q)
+                  eta = eta, paths = list(X1=X1, X2=X2), intensity = kappa_Q)
   })
 }
 
@@ -374,7 +374,7 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
     new_RPS_model(model_type = "bivariate_mixture", jump_dist = jump_dist,
                   kappa = kappa, stress_type = stress_type,
                   stress_parms = stress_parms, time_vec = times,
-                  paths = list(X1=X1, X2=X2),
+                  eta = eta, paths = list(X1=X1, X2=X2),
                   intensity = list(kappa_Q=kappa_Q, p_Q=p_Q))
   })
 }

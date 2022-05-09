@@ -11,7 +11,7 @@ FST(
   kappa,
   terminal_cond,
   grid_max,
-  endtime = 1,
+  stress_time = 1,
   N = 5000,
   h = FALSE,
   y = NULL
@@ -30,7 +30,7 @@ FST(
 
 \item{grid_max}{double, max grid value for FST}
 
-\item{endtime}{double, end time}
+\item{stress_time}{double, end time}
 
 \item{N}{int, number of points in grid}
 

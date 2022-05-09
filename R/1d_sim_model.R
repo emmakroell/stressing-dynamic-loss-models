@@ -7,16 +7,19 @@
 #' VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 #' CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 #' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
+#' stress_time: time at which stress occurs; if NULL, assumed to be end_time
 #' @param Npaths integer, number of paths
-#' @param endtime float, when to end sim
+#' @param end_time float, when to end sim
 #' @param dt float, step size in time
 #'
 #' @return RPS_model object
 #' @export
 stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
-                         stress_parms = list(c=c,q=q,s=s,VaR_stress=VaR_stress,
-                                             CVaR_stress=CVaR_stress),
-                         Npaths=1e4,endtime=1, dt=1e-2, interpolate = FALSE){
+                         stress_parms = list(c=c,q=q,s=s,
+                                             VaR_stress=VaR_stress,
+                                             CVaR_stress=CVaR_stress,
+                                             stress_time = stress_time),
+                         Npaths=1e4, end_time=1, dt=1e-2){
 
   # first, draw from the jump size distribution
   Ndraws <- 1e4
@@ -24,10 +27,18 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     withr::with_seed(720,{
       Draws <- sim_fun(Ndraws,parms)  # N draws from jump size distribution
 
-      Nsteps <- endtime / dt + 1   # number of steps to take
+      Nsteps <- end_time / dt + 1   # number of steps to take
+
+      # if stress_time is empty, assume stress is at the end
+      if (is.null(stress_parms$stress_time)) {
+        cat("No stress time specified. Applying stress at terminal time. \n")
+        stress_parms$stress_time <- end_time
+      }
+
 
       if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-        stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+        stress_parms$q <- stress_parms$VaR_stress *
+          compute_VaR(stress_parms$stress_time,kappa,stress_parms$c,jump_dist)
       }
       if ((stress_type == "CVaR") & is.null(stress_parms$s) &
           !(is.null(stress_parms$CVaR_stress))){
@@ -38,6 +49,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
         }
       }
 
+
       eta <- switch(stress_type,
                     "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
                                     dist=jump_dist),
@@ -47,66 +59,35 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       cat("eta:", eta, "\n")
 
       # create grid of Gs and kappas
-      times <- seq(0,endtime,by=dt)
-
-      if (interpolate == TRUE) {
-        # choose X max based on parameters:
-        x_max <- 5 * kappa * mean(jump_dist)
-        x_seq <- seq(0,x_max,by=1e-2)
-        len_x <- length(x_seq)
-
-        G_grid <- matrix(nrow = Nsteps, ncol = len_x)
-        kappa_grid <- matrix(nrow = Nsteps, ncol = len_x)
-
-
-        # compute G and kappa at grid points
-        for (i in 1:Nsteps){
-          distorted <- sim_G_kappa(t=times[i],x=x_seq,eta=eta,kappa=kappa,
-                                   stress_type=stress_type,
-                                   stress_parms=stress_parms,
-                                   dist=jump_dist,Draws=Draws)
-          G_grid[i,] <- distorted$G_Q
-          kappa_grid[i,] <- distorted$kappa_Q
-        }
-      }
+      times <- seq(0,end_time,by=dt)
 
       # initialize
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
       kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
 
       X[1,] <- rep(0,Npaths)   # X starts at 0 for all paths
-      times <- seq(0,endtime,by=dt)
+      times <- seq(0,end_time,by=dt)
 
       for (i in 2:Nsteps){
         U <- runif(Npaths)  # generate Npaths independent unif[0,1]
 
-        # compute kappa.Q and draw from G.Q, using interpolation
-        if (interpolate == TRUE) {
-          kappa_Q[i,] <- approx(x=x_seq,y=kappa_grid[i-1,],xout=X[i-1,])$y  # store kappa
-          G_Q_draw <- approx(x=x_seq,y=G_grid[i-1,],xout=X[i-1,])$y
-        } else {
-          distorted <- sim_G_kappa(t=times[i],x=X[i-1,],eta=eta,kappa=kappa,
-                                   stress_type=stress_type,
-                                   stress_parms=stress_parms,
-                                   dist=jump_dist,Draws=Draws)
-          kappa_Q[i,] <- distorted$kappa_Q
-          G_Q_draw <- distorted$G_Q
-        }
+        # compute kappa.Q and draw from G.Q
+        distorted <- sim_G_kappa(t=times[i],x=X[i-1,],eta=eta,kappa=kappa,
+                                 stress_type=stress_type,
+                                 stress_parms=stress_parms,
+                                 dist=jump_dist,Draws=Draws)
+        kappa_Q[i,] <- distorted$kappa_Q
+        G_Q_draw <- distorted$G_Q
 
         # simulate forward:
         X[i,] <- X[i-1,] + G_Q_draw * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
-
-        if (interpolate == TRUE){
-          # if X passed the grid max, return an error:
-          if (any(X[i,] > x_max)) stop("Path value exceeded grid max. Increase x.max. \n")
         }
-      }
-    })
+      })
     beepr::beep()
     new_RPS_model(model_type = "univariate", jump_dist = jump_dist,
                   kappa = kappa, stress_type = stress_type,
                   stress_parms = stress_parms, time_vec = times,
-                  paths = X, intensity = kappa_Q)
+                  eta = eta, paths = X, intensity = kappa_Q)
   })
 }
 
@@ -147,8 +128,10 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
     # compute h at each y
     for (i in 1:ylen){
       h[,i] <- switch(stress_type,
-                      "VaR" = h_VaR(x=x,y=y[i],t=t,dist=dist,eta=eta,q=q,kappa=kappa),
-                      "CVaR" = h_CVaR(x=x,y=y[i],t=t,dist=dist,eta=eta,q=q,kappa=kappa))
+                      "VaR" = h_VaR(x=x,y=y[i],t=t,dist=dist,eta=eta,
+                                    kappa=kappa,stress_parms=stress_parms),
+                      "CVaR" = h_CVaR(x=x,y=y[i],t=t,dist=dist,eta=eta,
+                                      q=q,kappa=kappa,stress_time=stress_time))
     }
 
     # initialize

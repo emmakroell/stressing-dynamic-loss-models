@@ -4,7 +4,7 @@
 \alias{compute_VaR}
 \title{computes VaR under the P measure using FST and stats::uniroot}
 \usage{
-compute_VaR(kappa, c, dist)
+compute_VaR(time, kappa, c, dist)
 }
 \arguments{
 \item{kappa}{dbl, compound Poisson parameter}

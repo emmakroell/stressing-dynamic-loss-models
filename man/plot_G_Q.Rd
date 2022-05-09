@@ -11,6 +11,7 @@ plot_G_Q(
   jump_dist,
   stress_type,
   stress_parms,
+  xmax = 12,
   N_out = 10000
 )
 }

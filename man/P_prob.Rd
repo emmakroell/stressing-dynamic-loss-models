@@ -4,7 +4,7 @@
 \alias{P_prob}
 \title{Computes the P probability that X is less than q using FST}
 \usage{
-P_prob(x, t, kappa, q, dist, grid_max = 50, endtime = 1, N = 8192)
+P_prob(x, t, kappa, q, dist, grid_max = 50, stress_time = 1, N = 8192)
 }
 \arguments{
 \item{x}{dbl}
@@ -19,7 +19,7 @@ P_prob(x, t, kappa, q, dist, grid_max = 50, endtime = 1, N = 8192)
 
 \item{grid_max}{int}
 
-\item{endtime}{dbl}
+\item{stress_time}{dbl}
 
 \item{N}{int}
 }
