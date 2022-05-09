@@ -104,9 +104,10 @@ plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,endtime=1,dt=1e-
 #' @return
 #' @export
 #'
-plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=1e4){
+plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
+                     stress_parms,xmax=12,N_out=1e4){
 
-  plot_x <- seq(0,12,0.1)
+  plot_x <- seq(0,xmax,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
 
   if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
@@ -154,10 +155,11 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,stress_parms,N_out=
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +
+    ggplot2::xlim(c(0,xmax)) +
     ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
                        ggplot2::aes(x=plot_x,y=plot_y)) +
-    ggplot2::facet_grid(X ~ time) +
-    ggplot2::theme_bw(base_size = 14) +
+    ggplot2::facet_grid(time ~ X) +
+    ggplot2::theme_bw(base_size = 16) +
     ggplot2::theme(legend.position = "none") + ggplot2::xlab('') + ggplot2::ylab('')
 
 }

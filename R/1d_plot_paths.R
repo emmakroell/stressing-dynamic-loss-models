@@ -108,7 +108,7 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1) +
     ggplot2::geom_line(data=dplyr::mutate(rbind(X_quantiles,X_baseline_quantiles),
                                           type = factor(type,levels = panel_order)),
-                       ggplot2::aes(x=time,y=value,group=quantile), size = 1.1) +
+                       ggplot2::aes(x=time,y=value,group=quantile), size = 1.4) +
     ggplot2::geom_hline(data = lines, ggplot2::aes(yintercept = line),lty=2) +
     ggplot2::facet_wrap(~type, scales="free",
                         labeller = ggplot2::as_labeller(headings,ggplot2::label_parsed)) +

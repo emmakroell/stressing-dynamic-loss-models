@@ -46,12 +46,14 @@ plot_copula <- function(object,time,type="copula"){
   baseline <- emp_copula(X1,X2) %>%
     dplyr::mutate(type = "baseline")
 
-  rbind(baseline,stressed) %>%
+  plot <- rbind(baseline,stressed) %>%
     ggplot2::ggplot(ggplot2::aes(U1,U2,colour=type)) +
     ggplot2::facet_grid(~type)+
     ggplot2::geom_point(size=1,alpha=0.4) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none")
+
+  return(list(data = rbind(baseline,stressed), plot = plot))
 }
 
 

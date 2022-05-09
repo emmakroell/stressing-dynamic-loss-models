@@ -44,6 +44,8 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                     "CVaR" = eta_CVaR(kappa=kappa, stress_parms=stress_parms,
                                       dist=jump_dist))
 
+      cat("eta:", eta, "\n")
+
       # create grid of Gs and kappas
       times <- seq(0,endtime,by=dt)
 

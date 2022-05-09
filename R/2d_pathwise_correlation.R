@@ -13,7 +13,7 @@
 corr_CI <- function(r,n,method,alpha=0.05){
   if (method == "spearman") constant <- (1+r^2/2)/(n-3)
   if (method == "kendall") constant <-0.437/(n-4)
-  tanh(atanh(r) + c(-1,1) * sqrt(constant)*stats::qnorm(alpha/2))
+  tanh(atanh(r) + c(1,-1) * sqrt(constant)*stats::qnorm(alpha/2))
 }
 
 

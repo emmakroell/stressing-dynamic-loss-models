@@ -18,8 +18,8 @@
 plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
                              stress_parms,N_out=1e4,xmax=9){
 
-  plot_x <- seq(0,12,0.1)
-  plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
+  x <- seq(0,xmax,0.1)
+  y <- jump_dist$dens_fun(x,jump_dist$parms)
 
   if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
     stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
@@ -44,7 +44,7 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
 
   dat <- NULL
   for (t in t_vec){
-    res <- sim_G_kappa(t=t,x_vec,eta=eta,kappa=kappa,stress_type=stress_type,
+    res <- sim_G_kappa_biv(t=t,x_vec,eta=eta,kappa=kappa,stress_type=stress_type,
                        stress_parms=stress_parms,dist=jump_dist,Draws=Draws,
                        N_out=N_out)
 
@@ -72,23 +72,25 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +
-    ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
-                       ggplot2::aes(x=plot_x,y=plot_y)) +
+    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x,y)),
+                       ggplot2::aes(x=x,y=y)) +
     ggplot2::facet_grid(X ~ time) +
-    ggplot2::theme_bw(base_size = 14) +
+    ggplot2::theme_bw(base_size = 16) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
 
+
   plot_y2 <- dat %>%
     dplyr::filter(dim == 2) %>%
-    dplyr::mutate(X=paste("x =",x)) %>%
+    dplyr::mutate(X=paste("X =",x)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +
-    ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
-                       ggplot2::aes(x=plot_x,y=plot_y)) +
-    ggplot2::facet_grid(X ~ time) +
-    ggplot2::theme_bw(base_size = 14) +
+    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x,y)),
+                       ggplot2::aes(x=x,y=y)) +
+    #ggplot2::facet_grid(X ~ time) +
+    ggplot2::facet_wrap(~X,ncol=1) +
+    ggplot2::theme_bw(base_size = 16) +
     ggplot2::theme(legend.position = "none") +
     ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
 
