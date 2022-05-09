@@ -7,25 +7,34 @@
 #' VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 #' CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 #' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
-#' @param endtime float, when to end sim
+#' @param end_time float, when to end sim
 #' @param dt float, step size in time
 #'
 #' @return
 #' @export
 #'
-plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,endtime=1,dt=1e-2){
+plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,end_time=1,dt=1e-2){
+
+  # if time_stress is empty, assume stress is at the end
+  if (is.null(stress_parms$time_stress)) {
+    cat("No stress time specified. Applying stress at terminal time. \n")
+    stress_parms$time_stress <- end_time
+  }
 
   if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-    stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+    stress_parms$q <- stress_parms$VaR_stress *
+      compute_VaR(stress_parms$time_stress,kappa,stress_parms$c,jump_dist)
   }
   if ((stress_type == "CVaR") & is.null(stress_parms$s) &
       !(is.null(stress_parms$CVaR_stress))){
     stress_parms$s <- stress_parms$CVaR_stress *
-      compute_CVaR(kappa=kappa,q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
+      compute_CVaR(stress_parms$time_stress,kappa=kappa,
+                   q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
     if (stress_parms$s < stress_parms$q) {
       stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
     }
   }
+
   eta <- switch(stress_type,
                 "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
                                 dist=jump_dist),
@@ -35,9 +44,9 @@ plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,endtime=1,dt=1e-
   set.seed(720)
   Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)  # N draws
 
-  Nsteps <- endtime / dt + 1   # number of steps to take
+  Nsteps <- end_time / dt + 1   # number of steps to take
   # create grid of kappa
-  times <- seq(0,endtime,by=dt)
+  times <- seq(0,end_time,by=dt)
   # choose X max based on q:
   x.max <- stress_parms$q + 5
   x.seq <- seq(0,x.max,by=0.1)
@@ -61,9 +70,9 @@ plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,endtime=1,dt=1e-
   # y-axis ticks
   axy <- list(
     ticketmode = 'array',
-    ticktext = seq(0,endtime,by=0.25),
-    tickvals = (1/dt)*seq(0,endtime,by=0.25),
-    range = (1/dt)*c(0,endtime),
+    ticktext = seq(0,end_time,by=0.25),
+    tickvals = (1/dt)*seq(0,end_time,by=0.25),
+    range = (1/dt)*c(0,end_time),
     title = "time"
   )
   # z-axis ticks
@@ -123,7 +132,8 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
   if ((stress_type == "CVaR") & is.null(stress_parms$s) &
       !(is.null(stress_parms$CVaR_stress))){
     stress_parms$s <- stress_parms$CVaR_stress *
-      compute_CVaR(kappa=kappa,q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
+      compute_CVaR(stress_parms$time_stress,kappa=kappa,
+                   q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
     if (stress_parms$s < stress_parms$q) {
       stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
     }
