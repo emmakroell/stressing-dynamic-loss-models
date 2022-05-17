@@ -16,12 +16,13 @@
 stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
                          stress_parms = list(c=c,q=q,s=s,VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress),
-                         Npaths=1e4, end_time=1, dt=1e-2){
+                         Npaths=1e4, end_time=1, dt=1e-2, beep = TRUE){
 
   # first, draw from the jump size distribution
   Ndraws <- 1e4
   with(jump_dist,{
     withr::with_seed(720,{
+
       Draws <- copula::rMvdc(Ndraws,biv_dist)  # N draws from jump size distribution
 
       Nsteps <- end_time / dt + 1   # number of steps to take
@@ -51,7 +52,7 @@ stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
                                     dist=jump_dist),
                     "CVaR" = eta_CVaR(kappa=kappa, stress_parms=stress_parms,
                                       dist=jump_dist))
-      cat('eta:',eta)
+      cat('eta:',eta, "\n")
 
       times <- seq(0,end_time,by=dt)
 
@@ -80,10 +81,9 @@ stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
         jump <- as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
         X1[i,] <- X1[i-1,] + G_Q_draw1 * jump
         X2[i,] <- X2[i-1,] + G_Q_draw2 * jump
-
       }
     })
-    beepr::beep()
+    if (beep == TRUE) beepr::beep()
     new_RPS_model(model_type = "bivariate_copula", jump_dist = jump_dist,
                   kappa = kappa, stress_type = stress_type,
                   stress_parms = stress_parms, time_vec = times,
@@ -183,14 +183,19 @@ sim_baseline <- function(object){
   })
 }
 
-sim_baseline_biv <- function(object){
-  with(object,{
+sim_baseline_biv <- function(object=NULL,jump_dist=NULL,
+                             kappa=NULL,Npaths=NULL,time_vec=NULL){
+  if (!is.null(object)){
+    jump_dist <- object$jump_dist
+    Npaths <- dim(object$paths$X1)[2]
+    time_vec <- object$time_vec
+    kappa <- object$kappa
+  }
     # draw from the jump size distribution
     withr::with_seed(720,{
       # N draws from jump size distribution
       Draws <- copula::rMvdc(1e4,jump_dist$biv_dist)
 
-      Npaths <- dim(paths$X1)[2]
       Nsteps <- length(time_vec)
 
       # empty matrices to store results
@@ -210,7 +215,6 @@ sim_baseline_biv <- function(object){
       }
     })
     return(list(X1=X1,X2=X2))
-  })
 }
 
 
