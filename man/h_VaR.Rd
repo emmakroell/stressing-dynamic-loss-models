@@ -20,7 +20,7 @@ h_VaR(x, y, t, dist, eta, kappa, stress_parms, N = 8192)
 \item{kappa}{double, compound Poisson parameter}
 
 \item{stress_parms}{list of parameters for stress; must contain:
-q: stressed VaR value, stress_time: time at which stress occurs}
+q: stressed VaR value, time_stress: time at which stress occurs}
 
 \item{N}{int, number of points for FST method}
 

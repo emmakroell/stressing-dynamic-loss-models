@@ -4,7 +4,7 @@
 \alias{h_CVaR}
 \title{Computes h(t,x,y) for CVaR constraint}
 \usage{
-h_CVaR(x, y, t, kappa, q, dist, eta, endtime = 1, N = 8192)
+h_CVaR(x, y, t, kappa, dist, eta, stress_parms, N = 8192)
 }
 \arguments{
 \item{x}{dbl}
@@ -15,15 +15,16 @@ h_CVaR(x, y, t, kappa, q, dist, eta, endtime = 1, N = 8192)
 
 \item{kappa}{dbl, compound Poisson parameter}
 
-\item{q}{dbl, stressed VaR value}
-
 \item{dist}{RPS_dist objecrt}
 
 \item{eta}{dbl}
 
-\item{endtime}{dbl}
+\item{stress_parms}{list of parameters for stress; must contain:
+q: stressed VaR value, time_stress: time at which stress occurs}
 
 \item{N}{int}
+
+\item{q}{dbl, stressed VaR value}
 }
 \value{
 

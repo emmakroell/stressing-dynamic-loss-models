@@ -9,7 +9,7 @@ stressed_sim(
   jump_dist,
   stress_type = "VaR",
   stress_parms = list(c = c, q = q, s = s, VaR_stress = VaR_stress, CVaR_stress =
-    CVaR_stress, stress_time = stress_time),
+    CVaR_stress, time_stress = time_stress),
   Npaths = 10000,
   end_time = 1,
   dt = 0.01
@@ -26,7 +26,7 @@ stressed_sim(
 VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
-stress_time: time at which stress occurs; if NULL, assumed to be end_time}
+time_stress: time at which stress occurs; if NULL, assumed to be end_time}
 
 \item{Npaths}{integer, number of paths}
 

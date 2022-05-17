@@ -11,7 +11,7 @@ FST(
   kappa,
   terminal_cond,
   grid_max,
-  stress_time = 1,
+  time_stress = 1,
   N = 5000,
   h = FALSE,
   y = NULL
@@ -30,13 +30,13 @@ FST(
 
 \item{grid_max}{double, max grid value for FST}
 
-\item{stress_time}{double, end time}
-
 \item{N}{int, number of points in grid}
 
 \item{h}{Boolean, function returns fraction of FST at x+y/FST at x if TRUE}
 
 \item{y}{vector, optional argument for numerator if h = TRUE}
+
+\item{stress_time}{double, end time}
 }
 \value{
 FST approximation of terminal_cond at x at time t

@@ -11,9 +11,8 @@ stressed_sim_biv(
   stress_parms = list(c = c, q = q, s = s, VaR_stress = VaR_stress, CVaR_stress =
     CVaR_stress),
   Npaths = 10000,
-  endtime = 1,
-  dt = 0.01,
-  interpolate = FALSE
+  end_time = 1,
+  dt = 0.01
 )
 }
 \arguments{
@@ -30,7 +29,7 @@ VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
 
 \item{Npaths}{integer, number of paths}
 
-\item{endtime}{float, when to end sim}
+\item{end_time}{float, when to end sim}
 
 \item{dt}{float, step size in time}
 }

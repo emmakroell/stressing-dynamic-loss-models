@@ -10,7 +10,7 @@ eta_VaR(kappa, stress_parms, dist)
 \item{kappa}{double, compound Poisson parameter}
 
 \item{stress_parms}{list of parameters for stress; must contain:
-q: stressed VaR value, stress_time: time at which stress occurs}
+q: stressed VaR value, time_stress: time at which stress occurs}
 
 \item{dist}{RPS_dist object, contains jump size distribution}
 }

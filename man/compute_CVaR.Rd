@@ -4,9 +4,11 @@
 \alias{compute_CVaR}
 \title{Compute CVaR under the P measure}
 \usage{
-compute_CVaR(kappa, q, c, dist)
+compute_CVaR(time, kappa, q, c, dist)
 }
 \arguments{
+\item{time}{dbl, time at which to compute CVaR}
+
 \item{kappa}{dbl, compound Poisson parameter}
 
 \item{q}{dbl, stressed VaR value}

@@ -5,9 +5,13 @@
 \title{Computes P-expectation of e^(-eta2 * (x-q)) indicator(x >= q)
 helper function for eta_CVaR and h_CVaR}
 \usage{
-P_expectation(x, t, kappa, q, eta2, dist, grid_max, endtime = 1, N = 8192)
+P_expectation(x, t, kappa, q, eta2, dist, grid_max, time_stress = 1, N = 8192)
 }
 \arguments{
+\item{x}{dbl}
+
+\item{t}{dbl}
+
 \item{kappa}{dbl, compound Poisson parameter}
 
 \item{q}{dbl, stressed VaR value}
@@ -16,7 +20,11 @@ P_expectation(x, t, kappa, q, eta2, dist, grid_max, endtime = 1, N = 8192)
 
 \item{dist}{RPS_dist object}
 
-\item{N}{}
+\item{grid_max}{int}
+
+\item{time_stress}{dbl}
+
+\item{N}{int}
 }
 \value{
 

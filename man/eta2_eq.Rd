@@ -4,7 +4,7 @@
 \alias{eta2_eq}
 \title{Equation to be solved to find eta_2}
 \usage{
-eta2_eq(eta, dist, q, s, kappa, grid_max, endtime = 1, N = 8192)
+eta2_eq(eta, dist, q, s, kappa, grid_max, time_stress = 1, N = 8192)
 }
 \arguments{
 \item{eta}{dbl}
@@ -17,7 +17,11 @@ eta2_eq(eta, dist, q, s, kappa, grid_max, endtime = 1, N = 8192)
 
 \item{kappa}{dbl, compound Poisson parameter}
 
-\item{N}{}
+\item{grid_max}{int}
+
+\item{time_stress}{dbl}
+
+\item{N}{nt}
 }
 \value{
 

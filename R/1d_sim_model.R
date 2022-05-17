@@ -107,8 +107,6 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 #' @param Draws vector
 #' @param N_out int, number of draws from distorted jump distribution
 #' @param delta_y float, step size for Riemann integration
-#' @param y_max int, maximum for integration of h(t,x,y) along y-axes
-#' @param tol dbl, cut off integration when prob less than tol
 #'
 #' @return A list containing:
 #' 1) an vector of length(x), containing a draw from G^Q at for each x
@@ -116,12 +114,10 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 #'
 #' @export
 sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
-                        Draws,N_out=1,delta_y=0.1,y_max=100,tol=1e-10) {
+                        Draws,N_out=1,delta_y=0.1) {
   with(c(dist,stress_parms), {
     # x is a vector
     xlen <- length(x)
-    # y_max <- seq(1,y_max)[which(dens_fun(seq(1,y_max),parms) < tol)[1]]
-    # y <- seq(0,y_max,by=delta_y)
     y <- seq(dist$min,dist$max,by=delta_y)
     ylen <- length(y)
     h <- array(dim=c(xlen,ylen))

@@ -4,7 +4,14 @@
 \alias{plot_kappa}
 \title{Plot kappa^Q in 3D using plotly}
 \usage{
-plot_kappa(kappa, jump_dist, stress_type, stress_parms, endtime = 1, dt = 0.01)
+plot_kappa(
+  kappa,
+  jump_dist,
+  stress_type,
+  stress_parms,
+  end_time = 1,
+  dt = 0.01
+)
 }
 \arguments{
 \item{kappa}{double, compound Poisson parameter}
@@ -18,7 +25,7 @@ VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
 CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
 
-\item{endtime}{float, when to end sim}
+\item{end_time}{float, when to end sim}
 
 \item{dt}{float, step size in time}
 }

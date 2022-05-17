@@ -4,7 +4,7 @@
 \alias{eta_CVaR}
 \title{Computes the optimal eta for CVaR stress}
 \usage{
-eta_CVaR(kappa, stress_parms, dist, endtime = 1, N = 8192)
+eta_CVaR(kappa, stress_parms, dist, time_stress = 1, N = 8192)
 }
 \arguments{
 \item{kappa}{dbl, compound Poisson parameter}
@@ -14,7 +14,7 @@ s = stressed value of CVaR}
 
 \item{dist}{RPS_dist object}
 
-\item{endtime}{dbl}
+\item{time_stress}{dbl}
 
 \item{N}{int}
 }

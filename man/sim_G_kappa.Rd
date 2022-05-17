@@ -15,9 +15,7 @@ sim_G_kappa(
   dist,
   Draws,
   N_out = 1,
-  delta_y = 0.1,
-  y_max = 100,
-  tol = 1e-10
+  delta_y = 0.1
 )
 }
 \arguments{
@@ -43,10 +41,6 @@ VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR}
 \item{N_out}{int, number of draws from distorted jump distribution}
 
 \item{delta_y}{float, step size for Riemann integration}
-
-\item{y_max}{int, maximum for integration of h(t,x,y) along y-axes}
-
-\item{tol}{dbl, cut off integration when prob less than tol}
 }
 \value{
 A list containing:

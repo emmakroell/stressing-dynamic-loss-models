@@ -7,6 +7,8 @@
 compute_VaR(time, kappa, c, dist)
 }
 \arguments{
+\item{time}{dbl, time at which to compute VaR}
+
 \item{kappa}{dbl, compound Poisson parameter}
 
 \item{c}{dbl, level for VaR between 0 and 1}

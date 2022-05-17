@@ -4,7 +4,7 @@
 \alias{new_RPS_dist}
 \title{Defines RPS_dist class, class giving a distribution}
 \usage{
-new_RPS_dist(dist_fun, dens_fun, sim_fun, char_fun, mean_fun, parms)
+new_RPS_dist(dist_fun, dens_fun, sim_fun, char_fun, mean_fun, min, max, parms)
 }
 \arguments{
 \item{dist_fun}{function of x and parms, returns distribution function}
@@ -16,6 +16,10 @@ new_RPS_dist(dist_fun, dens_fun, sim_fun, char_fun, mean_fun, parms)
 \item{char_fun}{function of x and parms, returns characteristic function}
 
 \item{mean_fun}{function of parms, returns mean}
+
+\item{min}{dbl, where to start integration of random variable}
+
+\item{max}{dbl, where to end integration of random variable}
 
 \item{parms}{list, parameters for distribution}
 }

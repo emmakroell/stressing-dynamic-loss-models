@@ -52,6 +52,8 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 #' @param char_fun function of x and parms, returns characteristic function
 #' @param mean_fun function of parms, returns mean
 #' @param parms list, parameters for distribution
+#' @param min dbl, where to start integration of random variable
+#' @param max dbl, where to end integration of random variable
 #'
 #' @return
 #' @export
@@ -64,8 +66,8 @@ new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
                 sim_fun = sim_fun,
                 char_fun = char_fun,
                 mean_fun = mean_fun,
-                min = min,
-                max = max,
+                min = min,  # approx of ess inf
+                max = max,  # approx of ess sup
                 parms = parms
   )
   ## Name of the class
