@@ -12,7 +12,8 @@ stressed_sim_biv(
     CVaR_stress),
   Npaths = 10000,
   end_time = 1,
-  dt = 0.01
+  dt = 0.01,
+  beep = TRUE
 )
 }
 \arguments{
