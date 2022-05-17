@@ -56,13 +56,16 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 #' @return
 #' @export
 #'
-new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun, parms) {
+new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
+                         min, max, parms) {
 
   model <- list(dist_fun = dist_fun,
                 dens_fun = dens_fun,
                 sim_fun = sim_fun,
                 char_fun = char_fun,
                 mean_fun = mean_fun,
+                min = min,
+                max = max,
                 parms = parms
   )
   ## Name of the class

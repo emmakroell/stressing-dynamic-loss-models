@@ -117,3 +117,105 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     ggplot2::ylab('')
 
 }
+
+
+#' plot a RPS object (better for paper)
+#' creates two plots: the first shows elect paths under the stressed model,
+#' along with the chosen quantiles under P and Q, the seconf shows the
+#' corresponding intensity paths udner Q
+#'
+#' @param object RPS_model object
+#' @param Npaths int, number of paths to plot
+#' @param quantiles list containing lower and upper, specifies which quantiles
+#' to highlight
+#' @param indices vector of indices to plot of length Npaths,
+#' or ="random" to choose randomly
+#'
+#' @return
+#' @export
+#'
+plot_paths2 <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
+                        indices = "random") {
+  # reshape X
+  X <- as.data.frame(object$paths)
+  colnames(X) <- seq(1,dim(X)[2],1)
+  time <- object$time_vec
+
+  # select paths to plot randomly
+  if (indices[1] == "random"){
+    withr::with_seed(450,{
+      indices <- sample(1:dim(X)[2],Npaths)
+    })}
+
+  # reformat X for ggplot
+  X_for_plot <- dplyr::as_tibble(cbind(X[,indices],time)) %>%
+    tidyr::pivot_longer(cols = tidyselect::all_of(1:Npaths),
+                        values_to = 'value',
+                        names_to = 'number') %>%
+    dplyr::mutate(number = as.factor(number), type = "stressed")
+
+  # summarize quantiles of X for plot
+  X_quantiles <- dplyr::as_tibble(cbind(X,time)) %>%
+    tidyr::pivot_longer(cols = tidyselect::all_of(1:dim(X)[2]),
+                        values_to = 'value',
+                        names_to = 'number') %>%
+    dplyr::group_by(time) %>%
+    dplyr::summarise(lwr = stats::quantile(value,quantiles$lower,type=1,na.rm=T),
+                     median = stats::median(value,na.rm=T),
+                     upr = stats::quantile(value,quantiles$upper,type=1,na.rm=T)) %>%
+    tidyr::pivot_longer(cols="lwr":"upr",values_to = "value",names_to ="quantile") %>%
+    dplyr::mutate(quantile = as.factor(quantile),type = "stressed")
+
+
+  # X under baseline measure
+  X_baseline <- sim_baseline(object) %>% as.data.frame()
+  colnames(X_baseline) <- seq(1,dim(X_baseline)[2])
+
+  # summarize quantiles of X for plot
+  X_baseline_quantiles <- dplyr::as_tibble(cbind(X_baseline,time)) %>%
+    tidyr::pivot_longer(cols = tidyselect::all_of(1:dim(X_baseline)[2]),
+                        values_to = 'value', names_to = 'number') %>%
+    dplyr::group_by(time) %>%
+    dplyr::summarise(lwr = stats::quantile(value,quantiles$lower,type=1,na.rm=T),
+                     median = stats::median(value,na.rm=T),
+                     upr = stats::quantile(value,quantiles$upper,type=1,na.rm=T)) %>%
+    tidyr::pivot_longer(cols="lwr":"upr",values_to = "value",names_to ="quantile") %>%
+    dplyr::mutate(quantile = as.factor(quantile),type = "original")
+
+  # kappa
+  kappa <- as.data.frame(object$intensity)
+  colnames(kappa) <- seq(1,dim(kappa)[2],1)
+
+  kappa_for_plot <- dplyr::as_tibble(cbind(kappa[2:dim(kappa)[1],indices],
+                                           time=time[2:length(time)])) %>%
+    tidyr::pivot_longer(cols = tidyselect::all_of(1:Npaths),
+                        values_to = 'value',
+                        names_to = 'number') %>%
+    dplyr::mutate(number = as.factor(number), type = "kappa")
+
+
+
+  # make plot for X
+  X_plot <- ggplot2::ggplot(X_for_plot) +
+    ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1.2) +
+    ggplot2::geom_line(data=X_quantiles,
+                       ggplot2::aes(x=time,y=value,group=quantile,linetype = "Q"),size = 1.4) +
+    ggplot2::geom_line(data=X_baseline_quantiles,
+                       ggplot2::aes(x=time,y=value,group=quantile, linetype="P"), size = 1.4) +
+    ggplot2::geom_hline( ggplot2::aes(yintercept = object$stress_parms$q),lty=2) +
+    ggplot2::theme_bw(base_size=14) +
+    ggplot2::ylab('') + scale_colour_discrete(guide = "none")+
+    ggplot2::scale_linetype_manual(name = "Measure",
+                                   values=c("Q" = "solid",
+                                            "P"="dashed")) +
+    theme(legend.key.width = unit(1.5,"cm"))
+
+  # make plot for kappa
+  kappa_plot <-  ggplot2::ggplot(kappa_for_plot) +
+    ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1.2) +
+    ggplot2::theme_bw(base_size=14) +
+    ggplot2::ylab('') + ggplot2::theme(legend.position = "none")
+
+  return(list(X=X_plot,kappa=kappa_plot))
+
+}

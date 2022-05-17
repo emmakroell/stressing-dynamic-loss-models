@@ -120,8 +120,9 @@ sim_G_kappa <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
   with(c(dist,stress_parms), {
     # x is a vector
     xlen <- length(x)
-    y_max <- seq(1,y_max)[which(dens_fun(seq(1,y_max),parms) < tol)[1]]
-    y <- seq(0,y_max,by=delta_y)
+    # y_max <- seq(1,y_max)[which(dens_fun(seq(1,y_max),parms) < tol)[1]]
+    # y <- seq(0,y_max,by=delta_y)
+    y <- seq(dist$min,dist$max,by=delta_y)
     ylen <- length(y)
     h <- array(dim=c(xlen,ylen))
 
