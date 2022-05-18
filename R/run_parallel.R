@@ -94,11 +94,8 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
                         beta=beta, jump_dist=jump_dist,
                         kappa=kappa, dt=dt)
 
-    res_mod <- res %>% mutate(sum_VaR_P = sum_VaR_P) %>%
-      mutate(perc_incr = (sum_VaR - sum_VaR_P)/sum_VaR_P * 100)
-
-
-    browser()
+    res_mod <- res %>% dplyr::mutate(sum_VaR_P = sum_VaR_P) %>%
+      dplyr::mutate(perc_incr = (sum_VaR - sum_VaR_P)/sum_VaR_P * 100)
 
     # find floor and ceiling
     floor_ind <- tail(which(res_mod$perc_incr < perc_target),1)

@@ -36,11 +36,12 @@ P_prob <- function(x,t,kappa,q,dist,grid_max=50,time_stress=1,N=8192){
 #' @export
 #'
 compute_VaR <- function(time,kappa,c,dist){
-  grid_max <- 5 * kappa * mean(dist)
+  grid_max <- 5 * kappa * dist$mean_fun(dist$parms) #mean(dist)
   stats::uniroot(function(q) P_prob(x=0,t=0,kappa=kappa,q=q,
                                     dist=dist,grid_max=grid_max,
                                     time_stress=time) - c,
-                 interval=c(0, 5*kappa*mean(dist)))$root
+                 interval=c(0, 5*kappa*dist$mean_fun(dist$parms)))$root
+                # interval=c(0, 5*kappa*mean(dist)))$root
 }
 
 
@@ -56,7 +57,7 @@ compute_VaR <- function(time,kappa,c,dist){
 #'
 eta_VaR <- function(kappa,stress_parms,dist) {
   with(stress_parms,{
-    grid_max <- 5 * kappa * mean(dist)
+    grid_max <- 5 * kappa * dist$mean_fun(dist$parms) #mean(dist)
     p <- P_prob(x=0, t=0, kappa = kappa, q=q, dist=dist,
                 grid_max=grid_max, time_stress=time_stress)
     eta <- log((1-c)/c * p/(1-p))
@@ -118,7 +119,7 @@ h_VaR <- function(x, y, t, dist, eta, kappa, stress_parms, N=8192) {
 #'
 compute_CVaR <- function(time,kappa,q,c,dist) {
   terminal_eqn <- function(x) (x - q) * as.integer(x > q)
-  grid_max <- 5 * kappa * mean(dist)
+  grid_max <- 5 * kappa * dist$mean_fun(dist$parms)
   expectation <- FST(x=0, t=0, dist=dist, kappa = kappa,
                      terminal_cond=terminal_eqn,
                      grid_max=grid_max, time_stress=time)
@@ -191,7 +192,7 @@ eta2_eq <- function(eta, dist, q, s, kappa, grid_max, time_stress=1, N=8192) {
 #'
 eta_CVaR <- function(kappa,stress_parms,dist,time_stress=1,N=8192) {
   with(stress_parms,{
-    grid_max <- 5 * kappa * mean(dist)
+    grid_max <- 5 * kappa * dist$mean_fun(dist$parms)
     # compute eta 2 using helper function and uniroot
     eta2 <- uniroot(function(eta) eta2_eq(eta, dist=dist, q=q, s=s,
                                           kappa=kappa, grid_max= grid_max,
