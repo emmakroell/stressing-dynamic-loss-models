@@ -79,14 +79,14 @@ run_parallel <- function(stress_seq,alpha,beta,jump_dist,kappa=5,dt=1e-2) {
 #'
 find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
                              alpha,beta,jump_dist,kappa=5,dt=1e-2,
-                             tol=1e-2,max_iter=4) {
+                             tol=1e-6,max_iter=4) {
   # intialize
   output <- NULL
   iter <- 0
   diff <- 1
   ncores <- max(1, detectCores()-4) # 6 cores
 
-  while (diff > tol & iter <= max_iter){
+  while (ceiling - floor > tol & iter <= max_iter){
     stress_seq <- seq(floor,ceiling,length.out=ncores)
 
     # compute VaR on grid
@@ -95,7 +95,8 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
                         kappa=kappa, dt=dt)
 
     res_mod <- res %>% dplyr::mutate(sum_VaR_P = sum_VaR_P) %>%
-      dplyr::mutate(perc_incr = (sum_VaR - sum_VaR_P)/sum_VaR_P * 100)
+      dplyr::mutate(perc_incr = (sum_VaR - sum_VaR_P)/sum_VaR_P * 100) %>%
+      arrange(perc_incr)
 
     # find floor and ceiling
     floor_ind <- tail(which(res_mod$perc_incr < perc_target),1)
@@ -109,20 +110,26 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
       stop("Solution not in given interval.")
     }
 
-
-    # difference
-    diff <- min(res_mod$perc_incr[ceiling_ind] - perc_target,
-                perc_target - res_mod$perc_incr[floor_ind])
     # update
-    floor <- stress_seq[floor_ind]
+    floor <- res_mod$stress[floor_ind]
     ceiling <- stress_seq[ceiling_ind]
     output <- rbind(output,res_mod)
     iter <- iter + 1
+
+    cat("iter = ", iter, ", floor = ", floor, ", ceiling ", ceiling,
+        "\n f(floor) = ",res_mod$perc_incr[floor_ind],
+        "f(ceiling) = ",res_mod$perc_incr[ceiling_ind], "\n")
+
+    if (floor > ceiling) stop("Floor greater than ceiling.")
   }
 
-  # find out if floor or ceiling is closest
-  stress <- ifelse(perc_target - floor < ceiling - perc_target, floor, ceiling)
+  # return midpoint
+  stress <- (floor + ceiling) / 2
 
   return(list(table = output,
-              stress = stress))
+              stress = stress,
+              niter = iter,
+              x_diff = ceiling - floor,
+              fx_diff = (res_mod$perc_incr[floor_ind] +
+                           res_mod$perc_incr[ceiling_ind])/2 - perc_target))
 }
