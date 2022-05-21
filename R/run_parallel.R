@@ -86,7 +86,7 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
   diff <- 1
   ncores <- max(1, detectCores()-4) # 6 cores
 
-  while (ceiling - floor > tol & iter <= max_iter){
+  while (ceiling - floor > tol & iter < max_iter){
     stress_seq <- seq(floor,ceiling,length.out=ncores)
 
     # compute VaR on grid
@@ -102,17 +102,21 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
     floor_ind <- tail(which(res_mod$perc_incr < perc_target),1)
     ceiling_ind <- head(which(res_mod$perc_incr >= perc_target),1)
 
+
+
     # return error if interval is wrong
     if (length(floor_ind) == 0) {
-      stop("Solution not in given interval.")
+      browser()
+      #stop("Solution not in given interval.")
     }
     if (floor_ind == length(stress_seq)) {
-      stop("Solution not in given interval.")
+      browser()
+      #stop("Solution not in given interval.")
     }
 
     # update
     floor <- res_mod$stress[floor_ind]
-    ceiling <- stress_seq[ceiling_ind]
+    ceiling <- res_mod$stress[ceiling_ind]
     output <- rbind(output,res_mod)
     iter <- iter + 1
 
@@ -120,7 +124,7 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
         "\n f(floor) = ",res_mod$perc_incr[floor_ind],
         "f(ceiling) = ",res_mod$perc_incr[ceiling_ind], "\n")
 
-    if (floor > ceiling) stop("Floor greater than ceiling.")
+    if (floor > ceiling) browser() #stop("Floor greater than ceiling.")
   }
 
   # return midpoint
