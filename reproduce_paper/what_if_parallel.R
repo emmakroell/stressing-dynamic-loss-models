@@ -72,7 +72,7 @@ res7 <- find_stress_parallel(floor=1.1, ceiling=1.4,
 saveRDS(res7,"saved_sims/stress_find/stress_alpha_07.RDS")
 
 # find stress - alpha = 0.8
-res8 <- find_stress_parallel(floor=1.05, ceiling=1.35,
+res8 <- find_stress_parallel(floor=1.1, ceiling=1.4,
                              perc_target=perc_target,
                              sum_VaR_P=as.numeric(sum_VaR_P),
                              alpha=0.8, beta=beta,
@@ -89,7 +89,6 @@ res9 <- find_stress_parallel(floor=1.05, ceiling=1.35,
                              dt=dt, tol=tol, max_iter=4)
 saveRDS(res9,"saved_sims/stress_find/stress_alpha_09.RDS")
 
-
 # find stress - alpha = 0.3
 res3 <- find_stress_parallel(floor=1.4, ceiling=1.7,
                              perc_target=perc_target,
@@ -99,72 +98,54 @@ res3 <- find_stress_parallel(floor=1.4, ceiling=1.7,
                              dt=dt, tol=tol, max_iter=4)
 saveRDS(res3,"saved_sims/stress_find/stress_alpha_03.RDS")
 
-# find stress - alpha = 0.2
-res2 <- find_stress_parallel(floor=1.5, ceiling=1.8,
-                             perc_target=perc_target,
-                             sum_VaR_P=as.numeric(sum_VaR_P),
-                             alpha=0.2, beta=beta,
-                             jump_dist=gamma_exp_t, kappa=kappa,
-                             dt=dt, tol=tol, max_iter=4)
-saveRDS(res2,"saved_sims/stress_find/stress_alpha_02.RDS")
+# ------------------------------------------------------------------------------
 
-# find stress - alpha = 0.1
-res1 <- find_stress_parallel(floor=1.55, ceiling=1.85,
-                             perc_target=perc_target,
-                             sum_VaR_P=as.numeric(sum_VaR_P),
-                             alpha=0.1, beta=beta,
-                             jump_dist=gamma_exp_t, kappa=kappa,
-                             dt=dt, tol=tol, max_iter=4)
-saveRDS(res1,"saved_sims/stress_find/stress_alpha_01.RDS")
+# find stress - alpha = 0.8
+res8b <- find_stress_parallel(floor=1.12, ceiling=1.22,
+                              perc_target=perc_target,
+                              sum_VaR_P=as.numeric(sum_VaR_P),
+                              alpha=0.8, beta=beta,
+                              jump_dist=gamma_exp_t, kappa=kappa,
+                              dt=dt, tol=tol, max_iter=4)
+saveRDS(res8b,"saved_sims/stress_find/dt1e3/stress_alpha_08.RDS")
+
+# find stress - alpha = 0.9
+res9b <- find_stress_parallel(floor=1.1, ceiling=1.2,
+                              perc_target=perc_target,
+                              sum_VaR_P=as.numeric(sum_VaR_P),
+                              alpha=0.9, beta=beta,
+                              jump_dist=gamma_exp_t, kappa=kappa,
+                              dt=dt, tol=tol, max_iter=4)
+saveRDS(res9b,"saved_sims/stress_find/dt1e3/stress_alpha_09.RDS")
 
 
 # ------------------------------------------------------------------------------
 # make table with results
-res6$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff)) %>% summarise_all(,.funs=mean)
 
-res4$table %>% mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
-res4$table %>% mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff)) %>% select(stress) %>%  pull()
-# only good to 2 decimal places
-res4_min <- res4$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+get_estimate_row <- function(res,perc_target) {
+  final_res <- res$table[(6*(res$niter-1)+1):(6*res$niter),]
+  floor_ind <- tail(which(final_res$perc_incr < perc_target),1)
+  ceiling_ind <- head(which(final_res$perc_incr >= perc_target),1)
 
-res3_min <- res3$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+  final_res[c(floor_ind,ceiling_ind),] %>% summarise_all(.funs=mean)
+}
 
-res5_min <- res5$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+res_table <- rbind(get_estimate_row(res3,perc_target),
+                   get_estimate_row(res4,perc_target),
+                   get_estimate_row(res5,perc_target),
+                   get_estimate_row(res6,perc_target),
+                   get_estimate_row(res7,perc_target),
+                   get_estimate_row(res8,perc_target))
 
-res6_min <- res6$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+res_table$stress
 
-res7_min <- res7$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+res_table %>% select(alpha,stress) %>%
+  mutate(stress = round(stress,3)) %>%
+  kableExtra::kbl("latex")
 
-res8_min <- res8$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
 
-res9_min <- res9$table %>%
-  mutate(diff = abs(perc_incr - perc_target)) %>%
-  filter(diff == min(diff))
+res_table %>% select(alpha,stress) %>%
+  mutate(stress = round((stress - 1) * 100,2) )  %>%
+  kableExtra::kbl("latex")
 
-results_table <- rbind(res3_min[1,],res4_min[1,],res5_min[1,],res6_min[1,],
-                       res7_min[1,],res8_min[1,],res9_min[1,])
 
-results_table %>% mutate(sum_VaR_Q = sum_VaR) %>%
-  select(alpha,stress,sum_VaR_P,sum_VaR_Q,perc_incr,diff)
-
-results_table %>% mutate(sum_VaR_Q = sum_VaR) %>%
-  select(alpha,stress,sum_VaR_P,sum_VaR_Q,perc_incr,diff) %>%
-  mutate(across(2:6, function(x) round(x,2))) %>%
-  kableExtra::kbl() %>% kableExtra::kable_styling()
-  # kableExtra::kbl("latex")

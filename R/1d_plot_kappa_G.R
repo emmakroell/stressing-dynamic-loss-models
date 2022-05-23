@@ -113,7 +113,7 @@ plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,end_time=1,dt=1e
 #' @export
 #'
 plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
-                     stress_parms,xmax=12,N_out=1e4){
+                     stress_parms,xmax=12,N_out=1e4,base_size=16){
 
   plot_x <- seq(0,xmax,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
@@ -177,7 +177,7 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
     ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
                        ggplot2::aes(x=plot_x,y=plot_y)) +
     ggplot2::facet_grid(time ~ X) +
-    ggplot2::theme_bw(base_size = 16) +
+    ggplot2::theme_bw(base_size = base_size) +
     ggplot2::theme(legend.position = "none") + ggplot2::xlab('') + ggplot2::ylab('')
 
 }

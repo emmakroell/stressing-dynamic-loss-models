@@ -102,8 +102,6 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
     floor_ind <- tail(which(res_mod$perc_incr < perc_target),1)
     ceiling_ind <- head(which(res_mod$perc_incr >= perc_target),1)
 
-
-
     # return error if interval is wrong
     if (length(floor_ind) == 0) {
       browser()

@@ -204,11 +204,11 @@ plot_paths2 <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
                        ggplot2::aes(x=time,y=value,group=quantile, linetype="P"), size = 1.4) +
     ggplot2::geom_hline( ggplot2::aes(yintercept = object$stress_parms$q),lty=2) +
     ggplot2::theme_bw(base_size=14) +
-    ggplot2::ylab('') + scale_colour_discrete(guide = "none")+
+    ggplot2::ylab('') + ggplot2::scale_colour_discrete(guide = "none")+
     ggplot2::scale_linetype_manual(name = "Measure",
                                    values=c("Q" = "solid",
                                             "P"="dashed")) +
-    theme(legend.key.width = unit(1.5,"cm"))
+    ggplot2::theme(legend.key.width = ggplot2::unit(1.5,"cm"))
 
   # make plot for kappa
   kappa_plot <-  ggplot2::ggplot(kappa_for_plot) +
