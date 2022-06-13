@@ -120,13 +120,14 @@ mean.RPS_dist <- function(object) {
 #'
 new_RPS_dist_biv <- function(copula, margins, sim_fun, dens_fun,
                          char_fun, mean_fun, parms) {
-  # copula <- copula(param = NULL, dim=2) #copula(0.5,dim=2) #for normal FIX
+
+  # build distribution using copula package
   biv_dist = copula::mvdc(copula=copula,
                   margins=margins,
-                  paramMargins=list(list(shape=parms$alpha1,
-                                         scale=parms$beta1),
-                                    list(shape=parms$alpha2,
-                                         scale=parms$beta2)))
+                  paramMargins=list(list(shape = parms$alpha1,
+                                         rate  = parms$beta1),
+                                    list(shape = parms$alpha2,
+                                         rate  = parms$beta2)))
 
   model <- list(biv_dist = biv_dist,
                 sim_fun = sim_fun,

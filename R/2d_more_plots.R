@@ -16,13 +16,22 @@
 #' @export
 #'
 plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
-                             stress_parms,N_out=1e4,xmax=9){
+                             stress_parms,N_out=1e4,xmax=c(9,4)){
 
-  x <- seq(0,xmax,0.1)
-  y <- jump_dist$dens_fun(x,jump_dist$parms)
+  # if time_stress is empty, assume stress is at the end
+  if (is.null(stress_parms$time_stress)) {
+    cat("No stress time specified. Applying stress at terminal time. \n")
+    stress_parms$time_stress <- end_time
+  }
+
+  # black lines for P density (assumes xi_2 \sim Gamma(alpha, beta))
+  x1 <- seq(0.1,xmax[1],0.1)
+  y1 <- jump_dist$dens_fun(x1,jump_dist$parms)
+  x2 <- seq(0.1,xmax[2],0.1)
+  y2 <- dgamma(x2, shape=jump_dist$parms$alpha2, rate=jump_dist$parms$beta2)
 
   if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
-    stress_parms$q <- stress_parms$VaR_stress * compute_VaR(kappa,stress_parms$c,jump_dist)
+    stress_parms$q <- stress_parms$VaR_stress * compute_VaR(stress_parms$time_stress,kappa,stress_parms$c,jump_dist)
   }
   if ((stress_type == "CVaR") & is.null(stress_parms$s) &
       !(is.null(stress_parms$CVaR_stress))){
@@ -42,6 +51,8 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
   # N draws from jump size distribution
   withr::with_seed(720,Draws <- copula::rMvdc(1e5,jump_dist$biv_dist))
 
+
+
   dat <- NULL
   for (t in t_vec){
     res <- sim_G_kappa_biv(t=t,x_vec,eta=eta,kappa=kappa,stress_type=stress_type,
@@ -54,13 +65,13 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
     Y1 <- Y1 %>%
       tidyr::pivot_longer(cols=dplyr::everything(),
                           names_to="x",values_to="value") %>%
-      dplyr::mutate(dim=1,time = as.factor(paste("time =",t)))
+      dplyr::mutate(dim=1, time = t)
 
     Y2 <- dplyr::as_tibble(t(res$G_Q_2))
     colnames(Y2) <- x_vec
     Y2 <- Y2 %>%
       tidyr::pivot_longer(cols=dplyr::everything(),names_to="x",values_to="value") %>%
-      dplyr::mutate(dim=2,time = as.factor(paste("time =",t)))
+      dplyr::mutate(dim=2, time = t)
 
     dat <- rbind(dat,Y1,Y2)
   }
@@ -68,31 +79,33 @@ plot_G_marginals <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
   # plots
   plot_y1 <- dat %>%
     dplyr::filter(dim == 1) %>%
-    dplyr::mutate(X=paste("x =",x)) %>%
+    dplyr::mutate(X=paste("x =",x),
+                  time = as.factor(paste("time =",time))) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +
-    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x,y)),
-                       ggplot2::aes(x=x,y=y)) +
+    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x1,y1)),
+                       ggplot2::aes(x=x1,y=y1)) +
     ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = 16) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax[1]))
 
 
   plot_y2 <- dat %>%
     dplyr::filter(dim == 2) %>%
-    dplyr::mutate(X=paste("X =",x)) %>%
+    dplyr::mutate(X=paste("x =",x),
+                  time = as.factor(paste("time =",time))) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +
-    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x,y)),
-                       ggplot2::aes(x=x,y=y)) +
+    ggplot2::geom_line(data=dplyr::as_tibble(cbind(x2,y2)),
+                       ggplot2::aes(x=x2,y=y2)) +
     #ggplot2::facet_grid(X ~ time) +
-    ggplot2::facet_wrap(~X,ncol=1) +
+    ggplot2::facet_wrap(~X, ncol=1) +
     ggplot2::theme_bw(base_size = 16) +
     ggplot2::theme(legend.position = "none") +
-    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax))
+    ggplot2::xlab('') + ggplot2::ylab('') + ggplot2::xlim(c(0,xmax[2]))
 
   return(list(plot_data = dat,
               plot_y1=plot_y1,
