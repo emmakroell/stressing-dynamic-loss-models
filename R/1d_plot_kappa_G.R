@@ -169,7 +169,7 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
   dat %>%
     tidyr::pivot_longer(cols = !c("time"),names_to = "X",values_to = "value") %>%
     dplyr::mutate(X = factor(X, levels = x_vec)) %>%
-    dplyr::mutate(X=paste("X =",X)) %>%
+    dplyr::mutate(X=paste("x =",X)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
                             bins=25,alpha=0.6) +

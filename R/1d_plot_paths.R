@@ -135,7 +135,7 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
 #' @export
 #'
 plot_paths2 <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
-                        indices = "random") {
+                        indices = "random",base_size=14) {
   # reshape X
   X <- as.data.frame(object$paths)
   colnames(X) <- seq(1,dim(X)[2],1)
@@ -203,7 +203,7 @@ plot_paths2 <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
     ggplot2::geom_line(data=X_baseline_quantiles,
                        ggplot2::aes(x=time,y=value,group=quantile, linetype="P"), size = 1.4) +
     ggplot2::geom_hline( ggplot2::aes(yintercept = object$stress_parms$q),lty=2) +
-    ggplot2::theme_bw(base_size=14) +
+    ggplot2::theme_bw(base_size=base_size) +
     ggplot2::ylab('') + ggplot2::scale_colour_discrete(guide = "none")+
     ggplot2::scale_linetype_manual(name = "Measure",
                                    values=c("Q" = "solid",
@@ -213,7 +213,7 @@ plot_paths2 <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
   # make plot for kappa
   kappa_plot <-  ggplot2::ggplot(kappa_for_plot) +
     ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1.2) +
-    ggplot2::theme_bw(base_size=14) +
+    ggplot2::theme_bw(base_size=base_size) +
     ggplot2::ylab('') + ggplot2::theme(legend.position = "none")
 
   return(list(X=X_plot,kappa=kappa_plot))
