@@ -3,14 +3,16 @@
 \name{plot_paths}
 \alias{plot_paths}
 \title{plot a RPS object
-creates three-panel plot of paths underr stressed model, paths under
-baseline model, and kappa_Q}
+creates two plots: the first shows elect paths under the stressed model,
+along with the chosen quantiles under P and Q, the second shows the
+corresponding intensity paths udner Q}
 \usage{
 plot_paths(
   object,
   Npaths,
   quantiles = list(lower = 0.1, upper = 0.9),
-  indices = "random"
+  indices = "random",
+  base_size = 14
 )
 }
 \arguments{
@@ -29,6 +31,7 @@ or ="random" to choose randomly}
 }
 \description{
 plot a RPS object
-creates three-panel plot of paths underr stressed model, paths under
-baseline model, and kappa_Q
+creates two plots: the first shows elect paths under the stressed model,
+along with the chosen quantiles under P and Q, the second shows the
+corresponding intensity paths udner Q
 }

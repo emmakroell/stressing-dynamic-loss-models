@@ -15,7 +15,7 @@ find_stress_parallel(
   jump_dist,
   kappa = 5,
   dt = 0.01,
-  tol = 0.01,
+  tol = 1e-06,
   max_iter = 4
 )
 }

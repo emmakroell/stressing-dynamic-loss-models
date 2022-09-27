@@ -12,7 +12,7 @@ plot_G_marginals(
   stress_type,
   stress_parms,
   N_out = 10000,
-  xmax = 9
+  xmax = c(9, 4)
 )
 }
 \arguments{

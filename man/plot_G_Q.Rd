@@ -12,7 +12,8 @@ plot_G_Q(
   stress_type,
   stress_parms,
   xmax = 12,
-  N_out = 10000
+  N_out = 10000,
+  base_size = 16
 )
 }
 \arguments{
