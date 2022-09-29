@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-This code implements reverse sensitivity testing on compound Poisson processes. This is joint work with Silvana M. Pesenti and Sebastian Jaimungal. This is a work in progress.
+This code implements reverse sensitivity testing on compound Poisson processes. This is joint work with Silvana M. Pesenti and Sebastian Jaimungal.
 
 ## Installation
 
@@ -47,8 +47,10 @@ gamma_2_1 <- new_RPS_dist(dist_fun = function(x,parms) pgamma(x,shape=parms$alph
                           sim_fun = function(x,parms) rgamma(x,shape=parms$alpha,
                                                              rate=parms$beta),
                           char_fun = function(x,parms) (1 - 1i*x/parms$beta)^(-parms$alpha),
+                          min = 0,
+                          max = qgamma(1-1e-10,shape=2,rate=1),
                           mean_fun = function(parms) parms$alpha/parms$beta,
-                          parms = list(alpha = 2, beta=1)) 
+                          parms = list(alpha = 2, beta=1))
 ```
 
 We decide to stress the 90\% VaR of the model up 10\%. This code imposes the stress and simulates under the model.
@@ -57,7 +59,7 @@ We decide to stress the 90\% VaR of the model up 10\%. This code imposes the str
 ex_gamma_VaR <- stressed_sim(kappa = 5, jump_dist = gamma_2_1, 
                              stress_type = "VaR",
                              stress_parms = list(c=0.9,VaR_stress=1.1),
-                             Npaths=1e4, endtime=1, dt=2e-3)
+                             Npaths=1e4, end_time=1, dt=2e-3)
 ```
 
 Here we plot the output of the stressed model. We compare the paths under the stressed model to those under the baseline model, as well as to how the intensity of the jumps have changed under the stressed probability measure.
@@ -77,7 +79,7 @@ ex_gamma_CVaR <- stressed_sim(kappa = 5, jump_dist = gamma_2_1,
                               stress_parms = list(c=0.9,
                                                  VaR_stress=1.1,
                                                  CVaR_stress=1.08),
-                              Npaths=1e4, endtime=1, dt=2e-3)
+                              Npaths=1e4, end_time=1, dt=2e-3)
 ```
 
 Here we plot the paths of the stressed model as well as the jump intensity over time. 
@@ -110,7 +112,7 @@ Here we examine the effect of a 10\% increase in $\text{VaR}_{0.9}(X^1_T)$ at th
 gamma_t_ex <- stressed_sim_biv(kappa = 5, jump_dist = gamma_t,
                                stress_type = "VaR",
                                stress_parms = list(c=0.9,VaR_stress=1.1),
-                               Npaths=1e4, endtime=1, dt=2e-3)
+                               Npaths=1e4, end_time=1, dt=2e-3)
 
 ```
 
@@ -119,7 +121,7 @@ plot_paths_biv(gamma_t_ex, Npaths=15, quantiles=list(lower=0.1,upper=0.9))
 ```
 
 
-We can also plot the contours of the copula density under $\mathbb{P}$ and $\mathbb{Q}$.Here we plot it at the terminal time, $t=1$:
+We can also plot the contours of the copula density under $\mathbb{P}$ and $\mathbb{Q}$. Here we plot it at the terminal time, $t=1$:
 
 ```{r}
 plot_copula_dens_contour(gamma_t_ex,time=1)
