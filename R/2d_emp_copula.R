@@ -179,7 +179,7 @@ plot_copula_dens_contour <- function(object,time){
                     col="#00BFC4",add=TRUE,lwd=3,
                     labcex=1.1,vfont=c("sans serif", "bold"))
   # add legend
-  graphics::legend("bottomright", legend = c("Q", "P"),
+  graphics::legend("bottomright", legend = c(expression(paste("Q"^"*")), "P"),
          col = c("#F8766D","#00BFC4"),lty=1:1,lwd=c(2,2),cex=1.1)
   graphics::par(mar=c(5,4,4,2)+.1)
 
