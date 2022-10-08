@@ -4,6 +4,10 @@
 #' @param kappa double, compound Poisson parameter
 #' @param stress_type string, type of stress, one of "VaR", "VaR & CVaR"
 #' @param stress_parms list, parameters for stress
+#' VaR: q: stressed VaR value, c: VaR level, VaR_stress: multiplier for P-VaR
+#' CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
+#' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
+#' time_stress: time at which stress occurs; if NULL, assumed to be end_time
 #' @param paths matrix, paths of stressed model
 #' @param time_vec vector, times at which stressed model is evaluated
 #' @param intensity matrix, paths of stressed processed intensity
@@ -13,7 +17,7 @@
 #' @return
 #' @export
 #'
-new_RPS_model <- function(model_type, jump_dist, kappa, stress_type, eta,
+RPS_model <- function(model_type, jump_dist, kappa, stress_type, eta,
                           stress_parms, paths, time_vec, intensity){
 
   stress_type <- match.arg(stress_type, c("VaR", "CVaR"))
@@ -58,8 +62,8 @@ is.RPS_model <- function(object) inherits(object, "RPS_model")
 #' @return
 #' @export
 #'
-new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
-                         min, max, parms) {
+RPS_dist_univ <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
+                              min, max, parms) {
 
   model <- list(dist_fun = dist_fun,
                 dens_fun = dens_fun,
@@ -71,7 +75,7 @@ new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
                 parms = parms
   )
   ## Name of the class
-  attr(model, "class") <- "RPS_dist"
+  attr(model, "class") <- "RPS_dist_univ"
   return(model)
 }
 
@@ -82,7 +86,7 @@ new_RPS_dist <- function(dist_fun, dens_fun, sim_fun, char_fun, mean_fun,
 #' @return Boolean
 #' @export
 #'
-is.RPS_dist <- function(object) inherits(object, "RPS_dist")
+is.RPS_dist_univ <- function(object) inherits(object, "RPS_dist_univ")
 
 #' Method for RPS_dist for mean()
 #'
@@ -118,7 +122,7 @@ mean.RPS_dist <- function(object) {
 #' @return
 #' @export
 #'
-new_RPS_dist_biv <- function(copula, margins, sim_fun, dens_fun,
+RPS_dist_biv <- function(copula, margins, sim_fun, dens_fun,
                          char_fun, mean_fun, parms) {
 
   # build distribution using copula package
@@ -186,7 +190,7 @@ mean.RPS_dist_biv<- function(object) {
 
 ## MIXTURE
 # Mixture model code
-new_RPS_dist_mix <- function(sim_fun_a, sim_fun_b, dens_fun_a, dens_fun_b,
+RPS_dist_mix <- function(sim_fun_a, sim_fun_b, dens_fun_a, dens_fun_b,
                              char_fun, mean_fun,parms) {
 
   model <- list(sim_fun_a = sim_fun_a,
