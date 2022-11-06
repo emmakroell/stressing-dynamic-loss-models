@@ -116,10 +116,6 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
     output <- rbind(output,res_mod)
     iter <- iter + 1
 
-    cat("iter = ", iter, ", floor = ", floor, ", ceiling ", ceiling,
-        "\n f(floor) = ",res_mod$perc_incr[floor_ind],
-        "f(ceiling) = ",res_mod$perc_incr[ceiling_ind], "\n")
-
     if (floor > ceiling) stop("Floor greater than ceiling.")
   }
 
