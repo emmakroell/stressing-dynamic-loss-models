@@ -3,7 +3,7 @@
 #' @param stress_seq sequence of stresses
 #' @param alpha dbl, between 0 and 1 (strictly), alpha level for VaR at time 0.5
 #' @param beta dbl, between 0 and 1 (strictly), alpha level for VaR at time 1
-#' @param jump_dist new_RPS_dist_biv object
+#' @param jump_dist RPS_dist_biv object
 #' @param kappa dbl, baseline intensity
 #' @param dt dbl, step size
 #'
@@ -22,7 +22,7 @@ run_parallel <- function(stress_seq,alpha,beta,jump_dist,kappa=5,dt=1e-2) {
   res <- foreach(stress=stress_seq,
                  .export = c("stressed_sim_biv","sim_G_kappa_biv",
                              "compute_VaR", "eta_VaR",
-                             "FST","h_VaR","P_prob","new_RPS_model"),
+                             "FST","h_VaR","P_prob","RPS_model"),
                  .combine='rbind') %dopar% {
                    sim <- stressed_sim_biv(kappa = kappa,
                                            jump_dist = jump_dist,
@@ -66,7 +66,7 @@ run_parallel <- function(stress_seq,alpha,beta,jump_dist,kappa=5,dt=1e-2) {
 #' @param sum_VaR_P   VaR_beta(X^1_T + X^2_T) under the baseline measure
 #' @param alpha dbl, between 0 and 1 (strictly), alpha level for VaR at time 0.5
 #' @param beta dbl, between 0 and 1 (strictly), alpha level for VaR at time 1
-#' @param jump_dist new_RPS_dist_biv object
+#' @param jump_dist RPS_dist_biv object
 #' @param kappa dbl, baseline intensity
 #' @param dt dbl, step size
 #' @param tol dbl, tolerance at which to stop search
@@ -80,7 +80,7 @@ run_parallel <- function(stress_seq,alpha,beta,jump_dist,kappa=5,dt=1e-2) {
 find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
                              alpha,beta,jump_dist,kappa=5,dt=1e-2,
                              tol=1e-6,max_iter=4) {
-  # intialize
+  # initialize
   output <- NULL
   iter <- 0
   diff <- 1
@@ -104,12 +104,10 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
 
     # return error if interval is wrong
     if (length(floor_ind) == 0) {
-      browser()
-      #stop("Solution not in given interval.")
+      stop("Solution not in given interval.")
     }
     if (floor_ind == length(stress_seq)) {
-      browser()
-      #stop("Solution not in given interval.")
+      stop("Solution not in given interval.")
     }
 
     # update
@@ -122,7 +120,7 @@ find_stress_parallel <- function(floor,ceiling,perc_target,sum_VaR_P,
         "\n f(floor) = ",res_mod$perc_incr[floor_ind],
         "f(ceiling) = ",res_mod$perc_incr[ceiling_ind], "\n")
 
-    if (floor > ceiling) browser() #stop("Floor greater than ceiling.")
+    if (floor > ceiling) stop("Floor greater than ceiling.")
   }
 
   # return midpoint

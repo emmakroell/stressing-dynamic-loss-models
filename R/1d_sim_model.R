@@ -21,6 +21,12 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                                              time_stress = time_stress),
                          Npaths=1e4, end_time=1, dt=1e-2){
 
+  # check type of jump distribution
+  stopifnot(is(jump_dist) == "RPS_dist_univ")
+  # check parameters
+  stopifnot(dt < end_time)
+  stopifnot(stress_parms$time_stress <= end_time)
+
   # first, draw from the jump size distribution
   Ndraws <- 1e4
   with(jump_dist,{
@@ -58,6 +64,11 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
       cat("eta:", eta, "\n")
 
+
+      # Initializes the progress bar
+      pb <- txtProgressBar(min = 0, max = Nsteps, style = 3,
+                           width = 50, char = "=")
+
       # create grid of Gs and kappas
       times <- seq(0,end_time,by=dt)
 
@@ -81,13 +92,16 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
         # simulate forward:
         X[i,] <- X[i-1,] + G_Q_draw * as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
+
+        # Sets the progress bar to the current state
+        setTxtProgressBar(pb, i)
         }
       })
     beepr::beep()
-    new_RPS_model(model_type = "univariate", jump_dist = jump_dist,
-                  kappa = kappa, stress_type = stress_type,
-                  stress_parms = stress_parms, time_vec = times,
-                  eta = eta, paths = X, intensity = kappa_Q)
+    RPS_model(model_type = "univariate", jump_dist = jump_dist,
+              kappa = kappa, stress_type = stress_type,
+              stress_parms = stress_parms, time_vec = times,
+              eta = eta, paths = X, intensity = kappa_Q)
   })
 }
 
