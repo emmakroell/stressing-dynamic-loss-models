@@ -13,25 +13,18 @@ knitr::opts_chunk$set(
 )
 ```
 
-# revpathsensitivity
+# Stressing Dynamic Loss Models
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-This code implements reverse sensitivity testing on compound Poisson processes. This is joint work with Silvana M. Pesenti and Sebastian Jaimungal.
-
-## Installation
-
-You can install the development version of revpathsensitivity from [GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("emmakroell/revpathsensitivity")
-```
+This code implements the algorithms described in our paper "Stressing Dynamic Loss Models" (Kroell, Pesenti, and Jaimungal, 2022). This is joint work with Silvana M. Pesenti and Sebastian Jaimungal.
 
 ## Example
 
-```{r example}
+Below we provide a few examples of working with our code to stress dynamic loss models, as described by compound Poisson processes.
+
+```{r example, echo = FALSE}
 library(revpathsensitivity)
 ```
 
@@ -40,17 +33,17 @@ In this example, we set the jump size distribution to $\Gamma(\alpha, \beta)$ wh
 ```{r}
 # jump size is Gamma(2,1) distributed
 # Set up distribution class
-gamma_2_1 <- new_RPS_dist(dist_fun = function(x,parms) pgamma(x,shape=parms$alpha,
+gamma_2_1 <- RPS_dist_univ(dist_fun = function(x,parms) pgamma(x,shape=parms$alpha,
+                                                               rate=parms$beta),
+                           dens_fun = function(x,parms) dgamma(x,shape=parms$alpha,
+                                                               rate=parms$beta),
+                           sim_fun = function(x,parms) rgamma(x,shape=parms$alpha,
                                                               rate=parms$beta),
-                          dens_fun = function(x,parms) dgamma(x,shape=parms$alpha,
-                                                              rate=parms$beta),
-                          sim_fun = function(x,parms) rgamma(x,shape=parms$alpha,
-                                                             rate=parms$beta),
-                          char_fun = function(x,parms) (1 - 1i*x/parms$beta)^(-parms$alpha),
-                          min = 0,
-                          max = qgamma(1-1e-10,shape=2,rate=1),
-                          mean_fun = function(parms) parms$alpha/parms$beta,
-                          parms = list(alpha = 2, beta=1))
+                           char_fun = function(x,parms) (1 - 1i*x/parms$beta)^(-parms$alpha),
+                           min = 0,
+                           max = qgamma(1-1e-10,shape=2,rate=1),
+                           mean_fun = function(parms) parms$alpha/parms$beta,
+                           parms = list(alpha = 2, beta=1))
 ```
 
 We decide to stress the 90\% VaR of the model up 10\%. This code imposes the stress and simulates under the model.
@@ -94,16 +87,16 @@ plot_paths(ex_gamma_CVaR, Npaths=15, quantiles=list(lower=0.1,upper=0.9))
 We can also examine the case where $X_t$ is bivariate and a stress is applied to only the first component, $X^1_t$. In this example, we set the severity distributions to both be $\Gamma(2,1)$ with a dependence relationship given by the $t$-copula with correlation 0.8 and 3 degrees of freedom. The implementation of a $t$-copula with fixed marginals is done using the `copula` package.
 
 ```{r}
-gamma_t <- new_RPS_dist_biv(copula=copula::tCopula(0.8,df=3,dim=2),
-                            margins=c("gamma", "gamma"),
-                            sim_fun = function(x,parms) rgamma(x,shape=parms$alpha1,
+gamma_t <- RPS_dist_biv(copula=copula::tCopula(0.8,df=3,dim=2),
+                        margins=c("gamma", "gamma"),
+                        sim_fun = function(x,parms) rgamma(x,shape=parms$alpha1,
                                                            rate=parms$beta1),
-                            dens_fun = function(x,parms) dgamma(x,shape=parms$alpha1,
+                        dens_fun = function(x,parms) dgamma(x,shape=parms$alpha1,
                                                             rate=parms$beta1),
-                            char_fun = function(x,parms) (1 - 1i*x/parms$beta1)^
+                        char_fun = function(x,parms) (1 - 1i*x/parms$beta1)^
                               (-parms$alpha1),
-                            mean_fun = function(parms) parms$alpha1/parms$beta1,
-                            parms = list(alpha1 = 2, beta1=1, alpha2=2, beta2=1))
+                          mean_fun = function(parms) parms$alpha1/parms$beta1,
+                          parms = list(alpha1 = 2, beta1=1, alpha2=2, beta2=1))
 ```
 
 Here we examine the effect of a 10\% increase in $\text{VaR}_{0.9}(X^1_T)$ at the 90\% level. 
@@ -127,5 +120,16 @@ We can also plot the contours of the copula density under $\mathbb{P}$ and $\mat
 plot_copula_dens_contour(gamma_t_ex,time=1)
 ```
 
+## Installation
+
+You can install the development version of revpathsensitivity from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("emmakroell/stressing-dynamic-loss-models")
+
+# load code
+library(revpathsensitivity)
+```
 
 
