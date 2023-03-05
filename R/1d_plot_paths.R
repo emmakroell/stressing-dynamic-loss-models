@@ -78,14 +78,14 @@ plot_paths <- function(object, Npaths, quantiles=list(lower=0.1,upper=0.9),
   X_plot <- ggplot2::ggplot(X_for_plot) +
     ggplot2::geom_line(alpha=0.75,ggplot2::aes(x=time,y=value,colour=number),size=1.2) +
     ggplot2::geom_line(data=X_quantiles,
-                       ggplot2::aes(x=time,y=value,group=quantile,linetype = "Q"),size = 1.4) +
+                       ggplot2::aes(x=time,y=value,group=quantile,linetype = "Q*"),size = 1.4) +
     ggplot2::geom_line(data=X_baseline_quantiles,
                        ggplot2::aes(x=time,y=value,group=quantile, linetype="P"), size = 1.4) +
     ggplot2::geom_hline( ggplot2::aes(yintercept = object$stress_parms$q),lty=2) +
     ggplot2::theme_bw(base_size=base_size) +
     ggplot2::ylab('') + ggplot2::scale_colour_discrete(guide = "none")+
     ggplot2::scale_linetype_manual(name = "Measure",
-                                   values=c("Q" = "solid",
+                                   values=c("Q*" = "solid",
                                             "P"="dashed")) +
     ggplot2::theme(legend.key.width = ggplot2::unit(1.5,"cm"))
 

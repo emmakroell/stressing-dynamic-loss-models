@@ -113,7 +113,8 @@ plot_kappa <- function(kappa,jump_dist,stress_type,stress_parms,end_time=1,dt=1e
 #' @export
 #'
 plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
-                     stress_parms,xmax=12,N_out=1e4,base_size=16){
+                     stress_parms,xmax=12,bins=25,N_out=1e4,
+                     base_size=16,ylim_vals=c(0,0.425)){
 
   plot_x <- seq(0,xmax,0.1)
   plot_y <- jump_dist$dens_fun(plot_x,jump_dist$parms)
@@ -139,6 +140,7 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
     }
   }
 
+  print(stress_parms)
 
   eta <- switch(stress_type,
                 "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
@@ -172,13 +174,15 @@ plot_G_Q <- function(x_vec,t_vec,kappa,jump_dist,stress_type,
     dplyr::mutate(X=paste("x =",X)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_histogram(ggplot2::aes(x=value,y=..density..,colour=X,fill=X),
-                            bins=25,alpha=0.6) +
+                            bins=bins,alpha=0.6) +
     ggplot2::xlim(c(0,xmax)) +
     ggplot2::geom_line(data=dplyr::as_tibble(cbind(plot_x,plot_y)),
                        ggplot2::aes(x=plot_x,y=plot_y)) +
-    ggplot2::facet_grid(time ~ X) +
+    ggplot2::facet_grid(X ~ time) +
     ggplot2::theme_bw(base_size = base_size) +
-    ggplot2::theme(legend.position = "none") + ggplot2::xlab('') + ggplot2::ylab('')
+    ggplot2::theme(legend.position = "none") +
+    ggplot2::ylim(ylim_vals) +
+    ggplot2::xlab('') + ggplot2::ylab('')
 
 }
 

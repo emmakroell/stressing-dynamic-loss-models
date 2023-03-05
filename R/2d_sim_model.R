@@ -54,6 +54,10 @@ stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
                                       dist=jump_dist))
       cat('eta:',eta, "\n")
 
+      # Initializes progress bar
+      pb <- txtProgressBar(min = 0, max = Nsteps, style = 3,
+                           width = 50, char = "=")
+
       times <- seq(0,end_time,by=dt)
 
       # initialize
@@ -81,6 +85,9 @@ stressed_sim_biv <- function(kappa, jump_dist, stress_type = "VaR",
         jump <- as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
         X1[i,] <- X1[i-1,] + G_Q_draw1 * jump
         X2[i,] <- X2[i-1,] + G_Q_draw2 * jump
+
+        # update progress bar
+        setTxtProgressBar(pb, i)
       }
     })
     if (beep == TRUE) beepr::beep()
@@ -261,23 +268,33 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
 
       if (is.null(stress_parms$q) & !(is.null(stress_parms$VaR_stress))){
         stress_parms$q <- stress_parms$VaR_stress *
-          compute_VaR(stress_parms$time_stress,kappa,stress_parms$c,jump_dist)
+          compute_VaR(stress_parms$time_stress,
+                      kappa*jump_dist$parms$p,
+                      stress_parms$c, jump_dist)
       }
       if ((stress_type == "CVaR") & is.null(stress_parms$s) &
           !(is.null(stress_parms$CVaR_stress))){
         stress_parms$s <- stress_parms$CVaR_stress *
-          compute_CVaR(stress_parms$time_stress,kappa=kappa,
-                       q=stress_parms$q,c=stress_parms$c,dist=jump_dist)
+          compute_CVaR(stress_parms$time_stress,
+                       kappa = kappa*jump_dist$parms$p,
+                       q = stress_parms$q,
+                       c = stress_parms$c,dist=jump_dist)
         if (stress_parms$s < stress_parms$q) {
           stop("Incompatible parameter choice: attempt to set CVaR below VaR.\n")
         }
       }
 
       eta <- switch(stress_type,
-                    "VaR" = eta_VaR(kappa=kappa, stress_parms=stress_parms,
-                                    dist=jump_dist),
-                    "CVaR" = eta_CVaR(kappa=kappa, stress_parms=stress_parms,
-                                      dist=jump_dist))
+                    "VaR" = eta_VaR(kappa = kappa*jump_dist$parms$p,
+                                    stress_parms = stress_parms,
+                                    dist = jump_dist),
+                    "CVaR" = eta_CVaR(kappa = kappa*jump_dist$parms$p,
+                                      stress_parms = stress_parms,
+                                      dist = jump_dist))
+
+      # Initializes progress bar
+      pb <- txtProgressBar(min = 0, max = Nsteps, style = 3,
+                           width = 50, char = "=")
 
       # initialize
       X1 <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
@@ -307,6 +324,9 @@ stressed_sim_mix <- function(kappa, jump_dist, stress_type = "VaR",
         jump <- as.integer(U < (1 - exp(-kappa_Q[i,] * dt)))
         X1[i,] <- X1[i-1,] + G_Q_draw1 * jump
         X2[i,] <- X2[i-1,] + G_Q_draw2 * jump
+
+        # update progress bar
+        setTxtProgressBar(pb, i)
 
       }
     })
