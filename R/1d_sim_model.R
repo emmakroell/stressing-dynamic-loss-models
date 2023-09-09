@@ -8,9 +8,11 @@
 #' CVAR: q: stressed VaR value, c: VaR level, s: stressed CVaR level,
 #' VaR_stress: multiplier for P-VaR, CVaR_stress: multiplier for P-CVaR
 #' time_stress: time at which stress occurs; if NULL, assumed to be end_time
-#' @param Npaths integer, number of paths
+#' @param X0 float, initial condition for X
+#' @param t0 float, starting time
 #' @param end_time float, when to end sim
 #' @param dt float, step size in time
+#' @param Npaths integer, number of paths
 #'
 #' @return RPS_model object
 #' @export
@@ -19,7 +21,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                                              VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress,
                                              time_stress = time_stress),
-                         Npaths=1e4, end_time=1, dt=1e-2){
+                         X0 = 0, t0 = 0, end_time=1, dt=1e-2, Npaths=1e4){
 
   # check type of jump distribution
   stopifnot(is(jump_dist) == "RPS_dist_univ")
@@ -33,7 +35,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     withr::with_seed(720,{
       Draws <- sim_fun(Ndraws,parms)  # N draws from jump size distribution
 
-      Nsteps <- end_time / dt + 1   # number of steps to take
+      Nsteps <- (end_time - t0) / dt + 1   # number of steps to take
 
       # if time_stress is empty, assume stress is at the end
       if (is.null(stress_parms$time_stress)) {
@@ -70,14 +72,14 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                            width = 50, char = "=")
 
       # create grid of Gs and kappas
-      times <- seq(0,end_time,by=dt)
+      times <- seq(t0,end_time,by=dt)
 
       # initialize
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
       kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
 
-      X[1,] <- rep(0,Npaths)   # X starts at 0 for all paths
-      times <- seq(0,end_time,by=dt)
+      X[1,] <- rep(X0,Npaths)   # X starts at X0 for all paths
+      # times <- seq(0,end_time,by=dt)
 
       for (i in 2:Nsteps){
         U <- runif(Npaths)  # generate Npaths independent unif[0,1]
@@ -176,11 +178,12 @@ sim_baseline <- function(object){
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 
+      cat("Im here")
       Npaths <- dim(paths)[2]
 
       Nsteps <- length(time_vec)
       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
-      X[1,] <- rep(0,Npaths)
+      X[1,] <- paths[1,]
 
       for (i in 2:Nsteps){
         U <- runif(Npaths)

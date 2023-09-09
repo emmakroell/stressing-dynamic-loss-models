@@ -35,7 +35,7 @@ i.e. 10, not 0.1}
 
 \item{beta}{dbl, between 0 and 1 (strictly), alpha level for VaR at time 1}
 
-\item{jump_dist}{new_RPS_dist_biv object}
+\item{jump_dist}{RPS_dist_biv object}
 
 \item{kappa}{dbl, baseline intensity}
 

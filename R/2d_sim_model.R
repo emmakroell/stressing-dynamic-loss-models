@@ -161,34 +161,34 @@ sim_G_kappa_biv <- function(t,x,eta,kappa,stress_type,stress_parms,dist,
 }
 
 
-#' function to get path of X under original probability measure
+#' #' function to get path of X under original probability measure
+#' #'
+#' #' @param object RPS_model object
+#' #'
+#' #' @return matrix, paths of original model
+#' #' @export
+#' #'
+#' sim_baseline <- function(object){
+#'   with(object,{
+#'     # draw from the jump size distribution
+#'     withr::with_seed(720,{
+#'       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 #'
-#' @param object RPS_model object
+#'       Npaths <- dim(paths)[2]
+#'       Nsteps <- length(time_vec)
 #'
-#' @return matrix, paths of original model
-#' @export
+#'       X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
+#'       X[1,] <- rep(0,Npaths)
 #'
-sim_baseline <- function(object){
-  with(object,{
-    # draw from the jump size distribution
-    withr::with_seed(720,{
-      Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
-
-      Npaths <- dim(paths)[2]
-      Nsteps <- length(time_vec)
-
-      X <- matrix(nrow=Nsteps,ncol=Npaths) # empty matrix to store results
-      X[1,] <- rep(0,Npaths)
-
-      for (i in 2:Nsteps){
-        U <- stats::runif(Npaths)
-        dt <- time_vec[i] - time_vec[i-1]
-        X[i,] <- X[i-1,] + sample(Draws,Npaths,replace=TRUE) * as.integer(U < (1 - exp(-kappa * dt)))
-      }
-    })
-    return(X)
-  })
-}
+#'       for (i in 2:Nsteps){
+#'         U <- stats::runif(Npaths)
+#'         dt <- time_vec[i] - time_vec[i-1]
+#'         X[i,] <- X[i-1,] + sample(Draws,Npaths,replace=TRUE) * as.integer(U < (1 - exp(-kappa * dt)))
+#'       }
+#'     })
+#'     return(X)
+#'   })
+#' }
 
 sim_baseline_biv <- function(object=NULL,jump_dist=NULL,
                              kappa=NULL,Npaths=NULL,time_vec=NULL){
