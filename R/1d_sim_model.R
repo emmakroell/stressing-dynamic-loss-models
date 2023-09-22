@@ -21,13 +21,14 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
                                              VaR_stress=VaR_stress,
                                              CVaR_stress=CVaR_stress,
                                              time_stress = time_stress),
-                         X0 = 0, t0 = 0, end_time=1, dt=1e-2, Npaths=1e4){
+                         X0 = 0, t0 = 0, end_time=1, dt=1e-2,
+                         Npaths=1e4, beep=TRUE){
 
   # check type of jump distribution
   stopifnot(is(jump_dist) == "RPS_dist_univ")
   # check parameters
   stopifnot(dt < end_time)
-  stopifnot(stress_parms$time_stress <= end_time)
+  #stopifnot(stress_parms$time_stress <= end_time)
 
   # first, draw from the jump size distribution
   Ndraws <- 1e4
@@ -35,7 +36,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
     withr::with_seed(720,{
       Draws <- sim_fun(Ndraws,parms)  # N draws from jump size distribution
 
-      Nsteps <- (end_time - t0) / dt + 1   # number of steps to take
+      # Nsteps <- (end_time - t0) / dt + 1   # number of steps to take
 
       # if time_stress is empty, assume stress is at the end
       if (is.null(stress_parms$time_stress)) {
@@ -66,6 +67,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
 
       cat("eta:", eta, "\n")
 
+      Nsteps <- round((end_time - t0) / dt + 1, 4)   # number of steps to take
 
       # Initializes the progress bar
       pb <- txtProgressBar(min = 0, max = Nsteps, style = 3,
@@ -79,7 +81,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
       kappa_Q <- matrix(nrow=Nsteps,ncol=Npaths)
 
       X[1,] <- rep(X0,Npaths)   # X starts at X0 for all paths
-      # times <- seq(0,end_time,by=dt)
+
 
       for (i in 2:Nsteps){
         U <- runif(Npaths)  # generate Npaths independent unif[0,1]
@@ -99,7 +101,7 @@ stressed_sim <- function(kappa, jump_dist, stress_type = "VaR",
         setTxtProgressBar(pb, i)
         }
       })
-    beepr::beep()
+    if (beep == TRUE) beepr::beep()
     RPS_model(model_type = "univariate", jump_dist = jump_dist,
               kappa = kappa, stress_type = stress_type,
               stress_parms = stress_parms, time_vec = times,
@@ -178,7 +180,6 @@ sim_baseline <- function(object){
     withr::with_seed(720,{
       Draws <- jump_dist$sim_fun(1e4,jump_dist$parms)
 
-      cat("Im here")
       Npaths <- dim(paths)[2]
 
       Nsteps <- length(time_vec)

@@ -14,7 +14,8 @@ stressed_sim(
   t0 = 0,
   end_time = 1,
   dt = 0.01,
-  Npaths = 10000
+  Npaths = 10000,
+  beep = TRUE
 )
 }
 \arguments{
